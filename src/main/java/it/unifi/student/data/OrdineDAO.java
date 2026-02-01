@@ -7,3 +7,6 @@ public interface OrdineDAO {
     void save(Ordine o);
     List<Ordine> findAll();
 }
+
+
+
