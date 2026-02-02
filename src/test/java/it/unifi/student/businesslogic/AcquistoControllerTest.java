@@ -33,7 +33,7 @@ public class AcquistoControllerTest {
         // CORREZIONE: Usa l'implementazione reale ProdottoDAOImpl
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance(); 
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
-        ((OrdineDAOImpl) oDao).clear(); //necessario fare il cast, il metodo clear è presente in OrdineDAOImpl
+        oDao.clear(); 
 
         controller = new AcquistoController(pDao, oDao);
         stubObserver = new StubObserver();

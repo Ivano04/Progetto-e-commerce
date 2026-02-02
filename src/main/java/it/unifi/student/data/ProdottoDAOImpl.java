@@ -16,6 +16,11 @@ public class ProdottoDAOImpl implements ProdottoDAO {
         catalogo.add(new Prodotto("P01", "Laptop Pro", 1500.00));
         catalogo.add(new Prodotto("P02", "Smartphone Plus", 800.00));
         catalogo.add(new Prodotto("P03", "Cuffie Noise Cancelling", 250.00));
+        catalogo.add(new Prodotto("P04", "Monitor 4K", 350.00));
+        catalogo.add(new Prodotto("P05", "Tastiera Meccanica", 120.00));
+        catalogo.add(new Prodotto("P06", "Mouse Wireless", 80.00));
+        catalogo.add(new Prodotto("P07", "Webcam HD", 95.00));
+        catalogo.add(new Prodotto("P08", "Sedia Gaming", 299.00));
     }
 
     // 3. Metodo d'accesso globale: deve restituire l'istanza corretta

@@ -7,6 +7,7 @@ public interface OrdineDAO {
     void save(Ordine o);
     List<Ordine> findAll();
     void removeById(int id);
+    void clear();
 }
 
 
