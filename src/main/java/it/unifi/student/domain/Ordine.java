@@ -14,16 +14,42 @@ public class Ordine {
         this.prodotti = new ArrayList<>();
     }
 
+    public int getId() { 
+        return id; 
+    
+    }
+    public void setId(int id) { 
+        this.id = id;
+     }
     // Metodi di accesso (Getter e Setter) richiesti dal Controller
-    public Utente getCliente() { return cliente; }
-    public void setCliente(Utente cliente) { this.cliente = cliente; }
+    public Utente getCliente() { 
+        return cliente;
+     }
+    public void setCliente(Utente cliente) { 
+        this.cliente = cliente;
+    }
 
-    public List<Prodotto> getProdotti() { return prodotti; }
-    public void setProdotti(List<Prodotto> prodotti) { this.prodotti = prodotti; }
+    public List<Prodotto> getProdotti() { 
+        return prodotti;
+    }
 
-    public String getStato() { return stato; }
-    public void setStato(String stato) { this.stato = stato; }
+    public void setProdotti(List<Prodotto> prodotti) { 
+        this.prodotti = prodotti;
+     
+    }
 
-    public double getTotale() { return totale; }
-    public void setTotale(double totale) { this.totale = totale; }
+    public String getStato() { 
+        return stato;
+     
+    }
+    public void setStato(String stato) { 
+        this.stato = stato; 
+    }
+
+    public double getTotale() { 
+        return totale; 
+    }
+    public void setTotale(double totale) { 
+        this.totale = totale; 
+    }
 }

@@ -44,12 +44,27 @@ public class HomePage extends JFrame {
 
         add(new JScrollPane(lista), BorderLayout.CENTER);
 
+        // --- CORREZIONE: Creazione del pannello per raggruppare i bottoni ---
+        JPanel panelBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER));
+
+        // Pulsante Carrello
         JButton carrelloBtn = new JButton("Vai al Carrello");
         carrelloBtn.addActionListener(e -> {
             new CarrelloPage(controller, utente).setVisible(true);
         });
+        panelBottoni.add(carrelloBtn);
 
-        add(carrelloBtn, BorderLayout.SOUTH);
+        // Pulsante Cronologia (I miei Acquisti)
+        JButton btnHistory = new JButton("I miei Acquisti");
+        btnHistory.addActionListener(e -> {
+            // Usiamo 'utente' passato al costruttore per coerenza con la sessione
+            new CronologiaPage(controller, utente).setVisible(true);
+        });
+        panelBottoni.add(btnHistory);
+
+        // pannello contenente i due bottoni alla zona SOUTH
+        add(panelBottoni, BorderLayout.SOUTH);
+
         setLocationRelativeTo(null);
     }
 }

@@ -90,4 +90,15 @@ public class AcquistoController implements Subject {
         carrelloAttuale.remove(p);
     }
 
+    public List<Ordine> getCronologiaUtente(Utente u) {
+    // Filtra gli ordini salvati per restituire solo quelli del cliente attuale
+        return ordineDAO.findAll().stream()
+            .filter(o -> o.getCliente().getEmail().equals(u.getEmail()))
+            .toList();
+    }
+
+    public void cancellaOrdine(int id) {
+        ordineDAO.removeById(id);
+        // Nota: qui si potrebbe aggiungere una notifica Observer se volessi loggare la cancellazione
+    }
 }
