@@ -6,36 +6,40 @@ import java.util.List;
 
 public class OrdineDAOImpl implements OrdineDAO {
     private static OrdineDAOImpl instance;
-    private List<Ordine> ordiniSalvati;
+    private List<Ordine> ordiniSalvati = new ArrayList<>();
+    
+    private int nextId = 1; 
 
-    private OrdineDAOImpl() {
-        this.ordiniSalvati = new ArrayList<>();
-    }
+    private OrdineDAOImpl() {}
 
     public static synchronized OrdineDAOImpl getInstance() {
-        if (instance == null) {
-            instance = new OrdineDAOImpl();
-        }
+        if (instance == null) instance = new OrdineDAOImpl();
         return instance;
     }
 
     @Override
     public void save(Ordine o) {
-        // Generazione ID automatica per simulazione
+        // Assegniamo l'ID solo se l'ordine non ne ha già uno
         if (o.getId() <= 0) {
-            o.setId(ordiniSalvati.size() + 1);
+            o.setId(nextId++); 
         }
         ordiniSalvati.add(o);
         System.out.println("LOG: Ordine #" + o.getId() + " salvato.");
     }
 
     @Override
+    public void removeById(int id) {
+        ordiniSalvati.removeIf(o -> o.getId() == id);
+    }
+
+    @Override
     public List<Ordine> findAll() {
         return new ArrayList<>(ordiniSalvati);
     }
-    @Override
-    public void removeById(int id) {
-        ordiniSalvati.removeIf(o -> o.getId() == id);
-        System.out.println("LOG-DATA: Ordine " + id + " rimosso dal database.");
+
+    //  resetta i test in modo da renderli indipendenti
+    public void clear() {
+        ordiniSalvati.clear();
+        nextId = 1; // Riporta il contatore a 1 per il prossimo test
     }
 }

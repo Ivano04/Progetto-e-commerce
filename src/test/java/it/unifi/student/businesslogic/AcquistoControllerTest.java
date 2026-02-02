@@ -33,13 +33,14 @@ public class AcquistoControllerTest {
         // CORREZIONE: Usa l'implementazione reale ProdottoDAOImpl
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance(); 
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
-        
+        ((OrdineDAOImpl) oDao).clear(); //necessario fare il cast, il metodo clear è presente in OrdineDAOImpl
+
         controller = new AcquistoController(pDao, oDao);
         stubObserver = new StubObserver();
         controller.attach(stubObserver);
     }
 
-    // --- Test Funzionali (Logica di Business) ---
+    // Test Funzionali (Logica di Business)
 
     @Test
     public void testFinalizzaAcquisto_CalcoloTotale() {
@@ -88,5 +89,44 @@ public class AcquistoControllerTest {
 
         // Verifica che l'observer NON sia stato disturbato
         assertEquals(0, stubObserver.chiamate, "L'osservatore non deve essere notificato se l'acquisto fallisce");
+    }
+    // ... (mantenere gli import e la classe StubObserver come prima) ...
+
+    @Test
+    public void testCronologia_FiltroUtente() {
+        Utente u1 = new Utente("mario@unifi.it", "Mario", "123");
+        Utente u2 = new Utente("luigi@unifi.it", "Luigi", "456");
+
+        controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
+        controller.finalizzaAcquisto(u1);
+
+        // Verifica che Mario veda il suo ordine e Luigi no
+        assertEquals(1, controller.getCronologiaUtente(u1).size());
+        assertTrue(controller.getCronologiaUtente(u2).isEmpty(), "Luigi non dovrebbe vedere l'ordine di Mario.");
+    }
+
+    @Test
+    public void testCancellaOrdine_BusinessFlow() {
+        Utente u = new Utente("mario@unifi.it", "Mario", "123");
+        controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
+        Ordine effettuato = controller.finalizzaAcquisto(u);
+        
+        int idDaCancellare = effettuato.getId();
+        controller.cancellaOrdine(idDaCancellare);
+
+        assertTrue(controller.getCronologiaUtente(u).isEmpty(), "La cronologia dovrebbe essere vuota dopo la cancellazione.");
+    }
+
+    @Test
+    public void testCronologia_IntegritaDettagli() {
+        Utente u = new Utente("mario@unifi.it", "Mario", "123");
+        controller.aggiungiAlCarrello(new Prodotto("P1", "Laptop", 1000.0));
+        controller.finalizzaAcquisto(u);
+
+        Ordine recuperato = controller.getCronologiaUtente(u).get(0);
+        
+        // Verifica che i dati per la GUI siano corretti
+        assertEquals(1, recuperato.getProdotti().size());
+        assertEquals(1000.0, recuperato.getTotale());
     }
 }
