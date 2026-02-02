@@ -1,11 +1,23 @@
 package it.unifi.student.view;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
+
 import it.unifi.student.businesslogic.AcquistoController;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
-import javax.swing.*;
-import java.awt.*;
-import java.util.List;
 
 public class HomePage extends JFrame {
     private AcquistoController controller;
@@ -14,7 +26,7 @@ public class HomePage extends JFrame {
         this.controller = controller;
 
         // Configurazione base della finestra
-        setTitle("E-Commerce Unifi - HomePage");
+        setTitle("E-Commerce Unifi Fatto da Persone Brave - HomePage");
         setSize(500, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -45,7 +57,7 @@ public class HomePage extends JFrame {
         add(new JScrollPane(grid), BorderLayout.CENTER);
 
         // Pannello Inferiore: Checkout (UC #3)
-        JButton btnCheckout = new JButton("Finalizza Acquisto (Mario Rossi)");
+        JButton btnCheckout = new JButton("Finalizza Acquisto (Jokerigno -ORA PARLO IO)");
         btnCheckout.setBackground(Color.GREEN);
         btnCheckout.addActionListener(e -> {
             Utente cliente = new Utente("mario.rossi@stud.unifi.it", "Mario Rossi", "pass");
