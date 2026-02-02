@@ -30,14 +30,11 @@ public class AcquistoControllerTest {
 
     @BeforeEach
     void setUp() {
-        // 1. Recupero istanze Singleton per lo strato Data [cite: 574]
-        ProdottoDAO pDao = ProdottoDAOImpl.getInstance();
+        // CORREZIONE: Usa l'implementazione reale ProdottoDAOImpl
+        ProdottoDAO pDao = ProdottoDAOImpl.getInstance(); 
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
         
-        // 2. Iniezione delle dipendenze nel controller [cite: 582]
         controller = new AcquistoController(pDao, oDao);
-
-        // 3. Configurazione dello Stub per testare il pattern Observer [cite: 168]
         stubObserver = new StubObserver();
         controller.attach(stubObserver);
     }

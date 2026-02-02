@@ -1,72 +1,55 @@
 package it.unifi.student.view;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.GridLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.util.List;
-
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.SwingConstants;
-
 import it.unifi.student.businesslogic.AcquistoController;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
 
 public class HomePage extends JFrame {
+
     private AcquistoController controller;
+    private Utente utente;
 
-    public HomePage(AcquistoController controller) {
+    public HomePage(AcquistoController controller, Utente utente) {
         this.controller = controller;
+        this.utente = utente;
 
-        // Configurazione base della finestra
-        setTitle("E-Commerce Unifi Fatto da Persone Brave - HomePage");
+        setTitle("Catalogo Prodotti - Benvenuto " + utente.getNome());
         setSize(500, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // Pannello Superiore: Titolo
-        JLabel lblTitolo = new JLabel("Catalogo Prodotti", SwingConstants.CENTER);
-        lblTitolo.setFont(new Font("Arial", Font.BOLD, 18));
-        add(lblTitolo, BorderLayout.NORTH);
+        JLabel titolo = new JLabel("Catalogo Prodotti", SwingConstants.CENTER);
+        titolo.setFont(new Font("Arial", Font.BOLD, 18));
+        add(titolo, BorderLayout.NORTH);
 
-        // Pannello Centrale: Griglia prodotti (UC #1: Visualizza Catalogo)
-        JPanel grid = new JPanel(new GridLayout(0, 1, 5, 5));
+        JPanel lista = new JPanel(new GridLayout(0, 1));
         List<Prodotto> prodotti = controller.getCatalogoProdotti();
 
         for (Prodotto p : prodotti) {
-            JPanel productPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-            productPanel.add(new JLabel(p.getNome() + " - €" + p.getPrezzo()));
-            
-            JButton btnAggiungi = new JButton("Aggiungi");
-            // Gestione carrello (UC #2)
-            btnAggiungi.addActionListener(e -> {
-                controller.aggiungiAlCarrello(p);
-                JOptionPane.showMessageDialog(this, p.getNome() + " aggiunto!");
-            });
-            
-            productPanel.add(btnAggiungi);
-            grid.add(productPanel);
-        }
-        add(new JScrollPane(grid), BorderLayout.CENTER);
+            JPanel riga = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            riga.add(new JLabel(p.getNome() + " - €" + p.getPrezzo()));
 
-        // Pannello Inferiore: Checkout (UC #3)
-        JButton btnCheckout = new JButton("Finalizza Acquisto (Jokerigno -ORA PARLO IO)");
-        btnCheckout.setBackground(Color.GREEN);
-        btnCheckout.addActionListener(e -> {
-            Utente cliente = new Utente("mario.rossi@stud.unifi.it", "Mario Rossi", "pass");
-            if (controller.finalizzaAcquisto(cliente) != null) {
-                JOptionPane.showMessageDialog(this, "Acquisto completato con successo!");
-            } else {
-                JOptionPane.showMessageDialog(this, "Errore: il carrello è vuoto.", "Attenzione", JOptionPane.ERROR_MESSAGE);
-            }
+            JButton addBtn = new JButton("Aggiungi");
+            addBtn.addActionListener(e -> {
+                controller.aggiungiAlCarrello(p);
+                JOptionPane.showMessageDialog(this, "Prodotto aggiunto!");
+            });
+
+            riga.add(addBtn);
+            lista.add(riga);
+        }
+
+        add(new JScrollPane(lista), BorderLayout.CENTER);
+
+        JButton carrelloBtn = new JButton("Vai al Carrello");
+        carrelloBtn.addActionListener(e -> {
+            new CarrelloPage(controller, utente).setVisible(true);
         });
-        add(btnCheckout, BorderLayout.SOUTH);
+
+        add(carrelloBtn, BorderLayout.SOUTH);
+        setLocationRelativeTo(null);
     }
 }

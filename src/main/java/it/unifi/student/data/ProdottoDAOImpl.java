@@ -6,11 +6,11 @@ import java.util.List;
 
 public class ProdottoDAOImpl implements ProdottoDAO { 
     
-    // 1. Istanza statica privata del Singleton
-    private static ProdottoDAOImpl instance;
+    // 1. L'istanza deve essere della classe stessa, NON del Test
+    private static ProdottoDAOImpl instance; 
     private List<Prodotto> catalogo;
 
-    // 2. Costruttore PRIVATO: nessuno fuori da questa classe può fare "new"
+    // 2. Costruttore PRIVATO
     private ProdottoDAOImpl() { 
         this.catalogo = new ArrayList<>();
         catalogo.add(new Prodotto("P01", "Laptop Pro", 1500.00));
@@ -18,10 +18,10 @@ public class ProdottoDAOImpl implements ProdottoDAO {
         catalogo.add(new Prodotto("P03", "Cuffie Noise Cancelling", 250.00));
     }
 
-    // 3. Metodo d'accesso globale
+    // 3. Metodo d'accesso globale: deve restituire l'istanza corretta
     public static synchronized ProdottoDAOImpl getInstance() {
         if (instance == null) {
-            instance = new ProdottoDAOImpl();
+            instance = new ProdottoDAOImpl(); // Crea l'oggetto reale
         }
         return instance;
     }

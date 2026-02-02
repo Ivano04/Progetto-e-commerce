@@ -78,6 +78,16 @@ public class AcquistoController implements Subject {
     }
     
     public List<Prodotto> getCatalogoProdotti() {
-    return prodottoDAO.getAllProdotti();
-}
+        return prodottoDAO.getAllProdotti();
+    }
+    public double getTotaleCarrello() {
+        return carrelloAttuale.stream()
+                .mapToDouble(Prodotto::getPrezzo)
+                .sum();
+    }
+
+    public void rimuoviDalCarrello(Prodotto p) {
+        carrelloAttuale.remove(p);
+    }
+
 }
