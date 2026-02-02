@@ -17,72 +17,70 @@ public class HomePage extends JFrame {
         this.controller = controller;
         this.utente = utente;
 
-        // --- Configurazione Finestra ---
-        setTitle("UNIFI E-Commerce - Benvenuto " + utente.getNome());
-        setSize(600, 500);
+        // --- Configurazione Finestra (Più larga per 4 colonne) ---
+        setTitle("UNIFI Shop - Catalogo");
+        setSize(1000, 700); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(new Color(245, 245, 245)); // Grigio chiarissimo di sfondo
+        getContentPane().setBackground(new Color(248, 249, 250));
 
-        // --- 1. Header (NORD) ---
-        JLabel titolo = new JLabel("Catalogo Prodotti", SwingConstants.CENTER);
-        titolo.setFont(new Font("Arial", Font.BOLD, 22));
-        titolo.setBorder(new EmptyBorder(20, 0, 20, 0));
-        titolo.setForeground(new Color(44, 62, 80)); // Blu notte
-        add(titolo, BorderLayout.NORTH);
+        // --- 1. Header Moderno ---
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(new Color(44, 62, 80));
+        header.setBorder(new EmptyBorder(20, 30, 20, 30));
 
-        // --- 2. Lista Prodotti con Scroll (CENTRO) ---
-        JPanel listaContenitore = new JPanel();
-        listaContenitore.setLayout(new BoxLayout(listaContenitore, BoxLayout.Y_AXIS));
-        listaContenitore.setBackground(new Color(245, 245, 245));
-        listaContenitore.setBorder(new EmptyBorder(10, 20, 10, 20));
+        JLabel titolo = new JLabel("Benvenuto, " + utente.getNome());
+        titolo.setFont(new Font("Arial", Font.BOLD, 24));
+        titolo.setForeground(Color.WHITE);
+        header.add(titolo, BorderLayout.WEST);
+        
+        add(header, BorderLayout.NORTH);
+
+        // --- 2. Griglia Prodotti (4 per riga) ---
+        // GridLayout(righe, colonne, hgap, vgap). 0 righe significa "quante servono".
+        JPanel gridPanel = new JPanel(new GridLayout(0, 4, 20, 20));
+        gridPanel.setBackground(new Color(248, 249, 250));
+        gridPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
 
         List<Prodotto> prodotti = controller.getCatalogoProdotti();
-
         for (Prodotto p : prodotti) {
-            // Utilizziamo la classe ProductPanel per ogni "Card" prodotto
-            ProductPanel card = new ProductPanel(p, prodottoSelezionato -> {
-                controller.aggiungiAlCarrello(prodottoSelezionato);
-                JOptionPane.showMessageDialog(this, 
-                    prodottoSelezionato.getNome() + " aggiunto al carrello!", 
-                    "Successo", JOptionPane.INFORMATION_MESSAGE);
-            });
-            
-            listaContenitore.add(card);
-            listaContenitore.add(Box.createRigidArea(new Dimension(0, 15))); // Spazio tra le card
+            gridPanel.add(new ProductPanel(p, prod -> {
+                controller.aggiungiAlCarrello(prod);
+                // Notifica discreta in basso anziché popup invasivo (opzionale)
+                JOptionPane.showMessageDialog(this, prod.getNome() + " a carrello!");
+            }));
         }
 
-        JScrollPane scrollPane = new JScrollPane(listaContenitore);
-        scrollPane.setBorder(null); // Rimuove il bordo brutto dello scroll
+        // Wrapper per non far "esplodere" la griglia se ci sono pochi prodotti
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.add(gridPanel, BorderLayout.NORTH);
+        wrapper.setBackground(new Color(248, 249, 250));
+
+        JScrollPane scrollPane = new JScrollPane(wrapper);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- 3. Pannello Bottoni (SUD) ---
-        JPanel panelBottoni = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-        panelBottoni.setBackground(Color.WHITE);
-        panelBottoni.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(200, 200, 200)));
+        // --- 3. Footer con Navigazione ---
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
+        footer.setBackground(Color.WHITE);
+        footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
 
-        // Bottone Carrello
-        JButton carrelloBtn = new JButton("Vai al Carrello");
-        carrelloBtn.setFont(new Font("Arial", Font.BOLD, 13));
-        carrelloBtn.setPreferredSize(new Dimension(150, 40));
-        carrelloBtn.addActionListener(e -> {
-            new CarrelloPage(controller, utente).setVisible(true);
-        });
+        JButton btnHistory = new JButton("Cronologia Ordini");
+        btnHistory.setPreferredSize(new Dimension(160, 40));
+        btnHistory.addActionListener(e -> new CronologiaPage(controller, utente).setVisible(true));
 
-        // Bottone Cronologia
-        JButton btnHistory = new JButton("I miei Acquisti");
-        btnHistory.setFont(new Font("Arial", Font.BOLD, 13));
-        btnHistory.setPreferredSize(new Dimension(150, 40));
-        btnHistory.addActionListener(e -> {
-            new CronologiaPage(controller, utente).setVisible(true);
-        });
+        JButton btnCart = new JButton("Vai al Carrello 🛒");
+        btnCart.setPreferredSize(new Dimension(160, 40));
+        btnCart.setBackground(new Color(46, 204, 113));
+        btnCart.setForeground(Color.WHITE);
+        btnCart.setFont(new Font("Arial", Font.BOLD, 13));
+        btnCart.addActionListener(e -> new CarrelloPage(controller, utente).setVisible(true));
 
-        panelBottoni.add(carrelloBtn);
-        panelBottoni.add(btnHistory);
-        
-        add(panelBottoni, BorderLayout.SOUTH);
+        footer.add(btnHistory);
+        footer.add(btnCart);
+        add(footer, BorderLayout.SOUTH);
 
-        // Centra la finestra
         setLocationRelativeTo(null);
     }
 }

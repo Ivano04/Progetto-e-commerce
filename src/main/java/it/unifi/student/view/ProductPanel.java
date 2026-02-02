@@ -9,35 +9,45 @@ import java.util.function.Consumer;
 public class ProductPanel extends JPanel {
 
     public ProductPanel(Prodotto p, Consumer<Prodotto> onAddAction) {
-        // Layout e stile della "Card"
-        setLayout(new BorderLayout(15, 15));
+        setLayout(new BorderLayout(10, 10));
         setBackground(Color.WHITE);
+        
+        // Bordo arrotondato e ombreggiatura simulata
         setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(230, 230, 230), 1),
+            BorderFactory.createLineBorder(new Color(220, 220, 220), 1),
             new EmptyBorder(15, 15, 15, 15)
         ));
 
-        // Info Prodotto (Sinistra)
-        JLabel lblInfo = new JLabel("<html><div style='width:150px;'>" +
-            "<b style='font-size:12px;'>" + p.getNome() + "</b><br/>" +
-            "<span style='color:gray;'>ID: " + p.getId() + "</span><br/>" +
-            "<b style='color:#2c3e50;'>€" + String.format("%.2f", p.getPrezzo()) + "</b>" +
-            "</div></html>");
-        add(lblInfo, BorderLayout.CENTER);
+        // 1. Info centrali (Nome e Prezzo)
+        JPanel infoPanel = new JPanel();
+        infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
+        infoPanel.setBackground(Color.WHITE);
 
-        // Bottone Aggiungi (Destra)
+        JLabel lblNome = new JLabel(p.getNome());
+        lblNome.setFont(new Font("Arial", Font.BOLD, 14));
+        lblNome.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JLabel lblPrezzo = new JLabel("€" + String.format("%.2f", p.getPrezzo()));
+        lblPrezzo.setFont(new Font("Arial", Font.PLAIN, 16));
+        lblPrezzo.setForeground(new Color(44, 62, 80));
+        lblPrezzo.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblPrezzo.setBorder(new EmptyBorder(10, 0, 10, 0));
+
+        infoPanel.add(lblNome);
+        infoPanel.add(lblPrezzo);
+        add(infoPanel, BorderLayout.CENTER);
+
+        // 2. Bottone in basso
         JButton btnAdd = new JButton("Aggiungi");
-        btnAdd.setFocusPainted(false);
-        btnAdd.setBackground(new Color(46, 204, 113)); // Verde Smeraldo
+        btnAdd.setBackground(new Color(52, 152, 219));
         btnAdd.setForeground(Color.WHITE);
-        btnAdd.setFont(new Font("Arial", Font.BOLD, 12));
+        btnAdd.setFocusPainted(false);
         btnAdd.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         btnAdd.addActionListener(e -> onAddAction.accept(p));
-
-        add(btnAdd, BorderLayout.EAST);
         
-        // Dimensione massima per evitare che si allarghi troppo
-        setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+        add(btnAdd, BorderLayout.SOUTH);
+
+        // Dimensione fissa per la box della griglia
+        setPreferredSize(new Dimension(200, 250));
     }
 }
