@@ -76,4 +76,8 @@ public class AcquistoController implements Subject {
     public List<Prodotto> getCarrello() {
         return carrelloAttuale;
     }
+    
+    public List<Prodotto> getCatalogoProdotti() {
+    return prodottoDAO.getAllProdotti();
+}
 }

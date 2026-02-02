@@ -6,41 +6,90 @@ import org.junit.jupiter.api.Test;
 import it.unifi.student.domain.*;
 import it.unifi.student.data.*;
 
+/**
+ * Test di unità per AcquistoController.
+ * Verifica la logica di business e l'integrità del pattern Observer.
+ */
 public class AcquistoControllerTest {
 
     private AcquistoController controller;
+    private StubObserver stubObserver;
+
+    // --- Classe Interna per il Testing (Spy/Stub) ---
+    // Utilizzata per monitorare le notifiche senza dipendere da servizi esterni (Email/Log)
+    private class StubObserver implements Observer {
+        public Ordine ordineRicevuto = null;
+        public int chiamate = 0;
+
+        @Override
+        public void update(Ordine ordine) {
+            this.ordineRicevuto = ordine;
+            this.chiamate++;
+        }
+    }
 
     @BeforeEach
     void setUp() {
-        // Recupero istanze Singleton
+        // 1. Recupero istanze Singleton per lo strato Data [cite: 574]
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
         
-        // Iniezione nel controller
+        // 2. Iniezione delle dipendenze nel controller [cite: 582]
         controller = new AcquistoController(pDao, oDao);
+
+        // 3. Configurazione dello Stub per testare il pattern Observer [cite: 168]
+        stubObserver = new StubObserver();
+        controller.attach(stubObserver);
     }
+
+    // --- Test Funzionali (Logica di Business) ---
 
     @Test
     public void testFinalizzaAcquisto_CalcoloTotale() {
-        controller.aggiungiAlCarrello(new Prodotto("1", "Test1", 10.0));
-        controller.aggiungiAlCarrello(new Prodotto("2", "Test2", 5.0));
+        controller.aggiungiAlCarrello(new Prodotto("T1", "Prodotto Test 1", 10.0));
+        controller.aggiungiAlCarrello(new Prodotto("T2", "Prodotto Test 2", 20.0));
 
-        Utente u = new Utente("test@studenti.unifi.it", "Mario", "pass");
+        Utente u = new Utente("test@unifi.it", "Mario", "pass");
         Ordine result = controller.finalizzaAcquisto(u);
 
         assertNotNull(result);
-        assertEquals(15.0, result.getTotale());
+        assertEquals(30.0, result.getTotale(), "Il totale calcolato non è corretto");
     }
 
     @Test
     public void testFinalizzaAcquisto_CarrelloVuoto() {
-        assertNull(controller.finalizzaAcquisto(new Utente()));
+        Ordine result = controller.finalizzaAcquisto(new Utente());
+        assertNull(result, "L'acquisto non dovrebbe essere possibile con un carrello vuoto");
     }
 
     @Test
     public void testAggiungiPerId_ProdottoEsistente() {
-        controller.aggiungiPerId("P01");
+        controller.aggiungiPerId("P01"); // Prodotto pre-caricato nel ProdottoDAOImpl
         assertEquals(1, controller.getCarrello().size());
         assertEquals("Laptop Pro", controller.getCarrello().get(0).getNome());
+    }
+
+    // --- Test del Pattern Observer (Verifica delle Notifiche) ---
+
+    @Test
+    public void testObserverNotification_Successo() {
+        // Simula il flusso base: aggiunta prodotto e checkout
+        controller.aggiungiAlCarrello(new Prodotto("T1", "Prodotto Test", 50.0));
+        Utente u = new Utente("test@unifi.it", "User", "pwd");
+        
+        Ordine result = controller.finalizzaAcquisto(u);
+
+        // Verifica che la notifica sia stata inviata correttamente all'observer
+        assertEquals(1, stubObserver.chiamate, "L'osservatore doveva essere notificato una volta");
+        assertEquals(result, stubObserver.ordineRicevuto, "L'ordine passato all'osservatore non corrisponde");
+    }
+
+    @Test
+    public void testObserverNotification_NessunaNotificaSuErrore() {
+        // Simula il flusso alternativo: tentativo di acquisto con carrello vuoto
+        controller.finalizzaAcquisto(new Utente());
+
+        // Verifica che l'observer NON sia stato disturbato
+        assertEquals(0, stubObserver.chiamate, "L'osservatore non deve essere notificato se l'acquisto fallisce");
     }
 }
