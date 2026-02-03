@@ -74,7 +74,7 @@ public class CarrelloPage extends JFrame {
         
         btnAcquista.addActionListener(e -> {
             if (controller.finalizzaAcquisto(utente) != null) {
-                JOptionPane.showMessageDialog(this, "Acquisto completato con successo!", "Grazie!", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Acquisto completato con successo!", "Godo!", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Il carrello è vuoto!", "Attenzione", JOptionPane.WARNING_MESSAGE);
