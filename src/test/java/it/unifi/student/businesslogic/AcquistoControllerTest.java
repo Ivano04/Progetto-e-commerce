@@ -106,4 +106,15 @@ public class AcquistoControllerTest {
         assertEquals(1, controller.getCronologiaUtente(u1).size());
         assertTrue(controller.getCronologiaUtente(u2).isEmpty());
     }
+    @Test
+    public void testRimuoviDalCarrello_VerificaDiminuzione() {
+        Prodotto p = new Prodotto("T1", "Test", 10.0);
+        controller.aggiungiAlCarrello(p);
+        assertEquals(1, controller.getCarrello().size());
+
+        controller.rimuoviDalCarrello(p);
+        
+        assertTrue(controller.getCarrello().isEmpty(), "Il carrello dovrebbe essere vuoto dopo la rimozione");
+        assertEquals(0.0, controller.getTotaleCarrello(), "Il totale dovrebbe tornare a 0");
+    }
 }

@@ -1,46 +1,85 @@
 package it.unifi.student.data;
 
 import it.unifi.student.domain.Prodotto;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProdottoDAOImpl implements ProdottoDAO { 
-    
-    // 1. L'istanza deve essere della classe stessa, NON del Test
-    private static ProdottoDAOImpl instance; 
-    private List<Prodotto> catalogo;
+/**
+ * Implementazione JDBC del DAO per la gestione dei Prodotti.
+ * Utilizza PostgreSQL per la persistenza dei dati.
+ */
+public class ProdottoDAOImpl implements ProdottoDAO {
 
-    // 2. Costruttore PRIVATO
-    private ProdottoDAOImpl() { 
-        this.catalogo = new ArrayList<>();
-        catalogo.add(new Prodotto("P01", "Laptop Pro", 1500.00));
-        catalogo.add(new Prodotto("P02", "Smartphone Plus", 800.00));
-        catalogo.add(new Prodotto("P03", "Cuffie Noise Cancelling", 250.00));
-        catalogo.add(new Prodotto("P04", "Monitor 4K", 350.00));
-        catalogo.add(new Prodotto("P05", "Tastiera Meccanica", 120.00));
-        catalogo.add(new Prodotto("P06", "Mouse Wireless", 80.00));
-        catalogo.add(new Prodotto("P07", "Webcam HD", 95.00));
-        catalogo.add(new Prodotto("P08", "Sedia Gaming", 299.00));
-    }
+    private static ProdottoDAOImpl instance;
 
-    // 3. Metodo d'accesso globale: deve restituire l'istanza corretta
+    // Costruttore privato per pattern Singleton
+    private ProdottoDAOImpl() {}
+
+    /**
+     * Restituisce l'unica istanza della classe.
+     */
     public static synchronized ProdottoDAOImpl getInstance() {
         if (instance == null) {
-            instance = new ProdottoDAOImpl(); // Crea l'oggetto reale
+            instance = new ProdottoDAOImpl();
         }
         return instance;
     }
 
+    /**
+     * Recupera l'elenco completo dei prodotti dal database.
+     * Implementa la funzione 'READ' dello schema CRUD[cite: 812].
+     */
     @Override
     public List<Prodotto> getAllProdotti() {
-        return new ArrayList<>(catalogo);
+        List<Prodotto> catalogo = new ArrayList<>();
+        String query = "SELECT * FROM Prodotto";
+
+        try (Connection conn = ConnectionManager.getInstance().getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                // Mapping: Trasformazione della riga del DB in oggetto Domain [cite: 583-584]
+                catalogo.add(new Prodotto(
+                    rs.getString("id"),
+                    rs.getString("nome"),
+                    rs.getDouble("prezzo")
+                ));
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore durante il recupero del catalogo prodotti");
+            e.printStackTrace();
+        }
+        return catalogo;
     }
 
+    /**
+     * Ricerca un prodotto specifico tramite il suo identificativo univoco.
+     * Utilizza PreparedStatement per prevenire SQL Injection.
+     */
     @Override
     public Prodotto getProdottoById(String id) {
-        return catalogo.stream()
-                .filter(p -> p.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        String query = "SELECT * FROM Prodotto WHERE id = ?";
+        
+        try (Connection conn = ConnectionManager.getInstance().getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            
+            pstmt.setString(1, id);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new Prodotto(
+                        rs.getString("id"),
+                        rs.getString("nome"),
+                        rs.getDouble("prezzo")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Errore durante il recupero del prodotto ID: " + id);
+            e.printStackTrace();
+        }
+        return null;
     }
 }
