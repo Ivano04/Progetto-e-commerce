@@ -5,27 +5,38 @@ import it.unifi.student.data.*;
 import java.util.ArrayList;
 import java.util.List;
 
-// Il controller ora implementa Subject per notificare i servizi post-acquisto
+/**
+ * Controller per la gestione del processo di acquisto.
+ * Implementa l'interfaccia Subject per notificare i servizi post-acquisto 
+ * e la GUI in modo disaccoppiato
+ */
 public class AcquistoController implements Subject {
 
     private List<Prodotto> carrelloAttuale;
     private ProdottoDAO prodottoDAO;
     private OrdineDAO ordineDAO;
     
-    // Lista interna degli osservatori
+    // Lista degli osservatori registrati
     private List<Observer> observers = new ArrayList<>();
-    private Ordine ultimoOrdineFinalizzato;
 
+    /**
+     * Costruttore con Dependency Injection.
+     * @param prodottoDAO DAO per l'accesso al catalogo prodotti.
+     * @param ordineDAO DAO per la persistenza degli ordini.
+     */
     public AcquistoController(ProdottoDAO prodottoDAO, OrdineDAO ordineDAO) {
         this.carrelloAttuale = new ArrayList<>();
         this.prodottoDAO = prodottoDAO;
         this.ordineDAO = ordineDAO;
     }
 
-    // --- Metodi interfaccia Subject ---
+    //Implementazione dell'interfaccia Subject
+
     @Override
     public void attach(Observer observer) {
-        if (observer != null) observers.add(observer);
+        if (observer != null && !observers.contains(observer)) {
+            observers.add(observer);
+        }
     }
 
     @Override
@@ -34,12 +45,13 @@ public class AcquistoController implements Subject {
     }
 
     @Override
-    public void notifyObservers() {
+    public void notifyObservers(TipoEvento evento, Object data) {
         for (Observer obs : observers) {
-            obs.update(ultimoOrdineFinalizzato);
+            obs.update(evento, data);
         }
     }
-    // -----------------------------------
+
+    // --- Metodi di Business Logic ---
 
     public void aggiungiPerId(String id) {
         Prodotto p = prodottoDAO.getProdottoById(id);
@@ -50,36 +62,58 @@ public class AcquistoController implements Subject {
         if (p != null) carrelloAttuale.add(p);
     }
 
+    //Finalizza l'acquisto creando un ordine e notificando gli osservatori.
+     
     public Ordine finalizzaAcquisto(Utente utente) {
         if (carrelloAttuale.isEmpty()) return null;
 
         Ordine nuovoOrdine = new Ordine();
         nuovoOrdine.setCliente(utente);
         nuovoOrdine.setProdotti(new ArrayList<>(carrelloAttuale));
-        nuovoOrdine.setStato("IN_ELABORAZIONE");
+        nuovoOrdine.setStato("PAGATO");
         
         double totale = carrelloAttuale.stream().mapToDouble(Prodotto::getPrezzo).sum();
         nuovoOrdine.setTotale(totale);
 
+        // Salvataggio nel database simulato
         ordineDAO.save(nuovoOrdine);
         
-        // Prepariamo la notifica salvando lo stato interno
-        this.ultimoOrdineFinalizzato = nuovoOrdine;
+        // Reset del carrello
         carrelloAttuale.clear();
         
-        // NOTIFICA: Questo è il passaggio chiave del pattern [cite: 121]
-        notifyObservers();
+        // NOTIFICA EVENTO: Passaggio chiave per l'estensibilità del sistema [cite: 121]
+        notifyObservers(TipoEvento.ACQUISTO_COMPLETATO, nuovoOrdine);
         
         return nuovoOrdine;
     }
 
+    /**
+     * Cancella un ordine esistente e notifica gli osservatori per aggiornare log e GUI.
+     */
+    public void cancellaOrdine(int id) {
+        // Recupero l'ordine per poterlo passare nella notifica prima di rimuoverlo
+        Ordine daCancellare = ordineDAO.findAll().stream()
+                .filter(o -> o.getId() == id)
+                .findFirst()
+                .orElse(null);
+
+        if (daCancellare != null) {
+            ordineDAO.removeById(id);
+            // NOTIFICA EVENTO: Permette alla View e al LogService di reagire [cite: 121]
+            notifyObservers(TipoEvento.ORDINE_CANCELLATO, daCancellare);
+        }
+    }
+
+    // --- Metodi Helper ---
+
     public List<Prodotto> getCarrello() {
-        return carrelloAttuale;
+        return new ArrayList<>(carrelloAttuale);
     }
     
     public List<Prodotto> getCatalogoProdotti() {
         return prodottoDAO.getAllProdotti();
     }
+
     public double getTotaleCarrello() {
         return carrelloAttuale.stream()
                 .mapToDouble(Prodotto::getPrezzo)
@@ -91,14 +125,8 @@ public class AcquistoController implements Subject {
     }
 
     public List<Ordine> getCronologiaUtente(Utente u) {
-    // Filtra gli ordini salvati per restituire solo quelli del cliente attuale
         return ordineDAO.findAll().stream()
             .filter(o -> o.getCliente().getEmail().equals(u.getEmail()))
             .toList();
-    }
-
-    public void cancellaOrdine(int id) {
-        ordineDAO.removeById(id);
-        // Nota: qui si potrebbe aggiungere una notifica Observer se volessi loggare la cancellazione
     }
 }

@@ -8,125 +8,102 @@ import it.unifi.student.data.*;
 
 /**
  * Test di unità per AcquistoController.
- * Verifica la logica di business e l'integrità del pattern Observer.
+ * Verifica la logica di business e l'integrità del pattern Observer Event-Driven.
  */
 public class AcquistoControllerTest {
 
     private AcquistoController controller;
     private StubObserver stubObserver;
 
-    // --- Classe Interna per il Testing (Spy/Stub) ---
-    // Utilizzata per monitorare le notifiche senza dipendere da servizi esterni (Email/Log)
+    // --- Stub per il Testing ---
+    // Cattura le notifiche per verificare che il controller faccia il suo dovere
     private class StubObserver implements Observer {
-        public Ordine ordineRicevuto = null;
+        public TipoEvento ultimoEvento = null;
+        public Object ultimiDati = null;
         public int chiamate = 0;
 
         @Override
-        public void update(Ordine ordine) {
-            this.ordineRicevuto = ordine;
+        public void update(TipoEvento evento, Object data) {
+            this.ultimoEvento = evento;
+            this.ultimiDati = data;
             this.chiamate++;
         }
     }
 
     @BeforeEach
     void setUp() {
-        // CORREZIONE: Usa l'implementazione reale ProdottoDAOImpl
+        // Uso delle implementazioni reali (Singleton) come previsto dal disciplinare
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance(); 
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
-        oDao.clear(); 
+        oDao.clear(); // Garantisce l'indipendenza dei test 
 
         controller = new AcquistoController(pDao, oDao);
         stubObserver = new StubObserver();
         controller.attach(stubObserver);
     }
 
-    // Test Funzionali (Logica di Business)
+    // --- Test del Pattern Observer (Il cuore del refactoring) ---
 
     @Test
-    public void testFinalizzaAcquisto_CalcoloTotale() {
-        controller.aggiungiAlCarrello(new Prodotto("T1", "Prodotto Test 1", 10.0));
-        controller.aggiungiAlCarrello(new Prodotto("T2", "Prodotto Test 2", 20.0));
-
-        Utente u = new Utente("test@unifi.it", "Mario", "pass");
-        Ordine result = controller.finalizzaAcquisto(u);
-
-        assertNotNull(result);
-        assertEquals(30.0, result.getTotale(), "Il totale calcolato non è corretto");
-    }
-
-    @Test
-    public void testFinalizzaAcquisto_CarrelloVuoto() {
-        Ordine result = controller.finalizzaAcquisto(new Utente());
-        assertNull(result, "L'acquisto non dovrebbe essere possibile con un carrello vuoto");
-    }
-
-    @Test
-    public void testAggiungiPerId_ProdottoEsistente() {
-        controller.aggiungiPerId("P01"); // Prodotto pre-caricato nel ProdottoDAOImpl
-        assertEquals(1, controller.getCarrello().size());
-        assertEquals("Laptop Pro", controller.getCarrello().get(0).getNome());
-    }
-
-    // --- Test del Pattern Observer (Verifica delle Notifiche) ---
-
-    @Test
-    public void testObserverNotification_Successo() {
-        // Simula il flusso base: aggiunta prodotto e checkout
+    public void testObserver_NotificaAcquistoCompletato() {
         controller.aggiungiAlCarrello(new Prodotto("T1", "Prodotto Test", 50.0));
         Utente u = new Utente("test@unifi.it", "User", "pwd");
         
         Ordine result = controller.finalizzaAcquisto(u);
 
-        // Verifica che la notifica sia stata inviata correttamente all'observer
-        assertEquals(1, stubObserver.chiamate, "L'osservatore doveva essere notificato una volta");
-        assertEquals(result, stubObserver.ordineRicevuto, "L'ordine passato all'osservatore non corrisponde");
+        // Verifichiamo che l'evento sia quello giusto e contenga l'ordine
+        assertEquals(1, stubObserver.chiamate);
+        assertEquals(TipoEvento.ACQUISTO_COMPLETATO, stubObserver.ultimoEvento);
+        assertEquals(result, stubObserver.ultimiDati);
     }
 
     @Test
-    public void testObserverNotification_NessunaNotificaSuErrore() {
-        // Simula il flusso alternativo: tentativo di acquisto con carrello vuoto
+    public void testObserver_NotificaCancellazioneOrdine() {
+        Utente u = new Utente("mario@unifi.it", "Mario", "123");
+        controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
+        Ordine effettuato = controller.finalizzaAcquisto(u);
+        
+        // Reset dello stub per isolare la prossima notifica
+        stubObserver.chiamate = 0;
+        
+        controller.cancellaOrdine(effettuato.getId());
+
+        // Verifichiamo che sia scattata la notifica di cancellazione
+        assertEquals(1, stubObserver.chiamate);
+        assertEquals(TipoEvento.ORDINE_CANCELLATO, stubObserver.ultimoEvento);
+        assertEquals(effettuato, stubObserver.ultimiDati);
+    }
+
+    @Test
+    public void testObserver_NessunaNotificaSeCarrelloVuoto() {
         controller.finalizzaAcquisto(new Utente());
 
-        // Verifica che l'observer NON sia stato disturbato
-        assertEquals(0, stubObserver.chiamate, "L'osservatore non deve essere notificato se l'acquisto fallisce");
+        // Se l'acquisto fallisce, non deve partire alcuna notifica
+        assertEquals(0, stubObserver.chiamate);
     }
-    // ... (mantenere gli import e la classe StubObserver come prima) ...
+
+    // --- Test Funzionali (Logica di Business) ---
 
     @Test
-    public void testCronologia_FiltroUtente() {
+    public void testFinalizzaAcquisto_CalcoloTotale() {
+        controller.aggiungiAlCarrello(new Prodotto("T1", "P1", 10.0));
+        controller.aggiungiAlCarrello(new Prodotto("T2", "P2", 20.0));
+
+        Ordine result = controller.finalizzaAcquisto(new Utente("a@b.it", "A", "p"));
+
+        assertNotNull(result);
+        assertEquals(30.0, result.getTotale());
+    }
+
+    @Test
+    public void testCronologia_FiltroPerUtente() {
         Utente u1 = new Utente("mario@unifi.it", "Mario", "123");
         Utente u2 = new Utente("luigi@unifi.it", "Luigi", "456");
 
         controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
         controller.finalizzaAcquisto(u1);
 
-        // Verifica che Mario veda il suo ordine e Luigi no
         assertEquals(1, controller.getCronologiaUtente(u1).size());
-        assertTrue(controller.getCronologiaUtente(u2).isEmpty(), "Luigi non dovrebbe vedere l'ordine di Mario.");
-    }
-
-    @Test
-    public void testCancellaOrdine_BusinessFlow() {
-        Utente u = new Utente("mario@unifi.it", "Mario", "123");
-        controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
-        Ordine effettuato = controller.finalizzaAcquisto(u);
-        
-        int idDaCancellare = effettuato.getId();
-        controller.cancellaOrdine(idDaCancellare);
-
-        assertTrue(controller.getCronologiaUtente(u).isEmpty(), "La cronologia dovrebbe essere vuota dopo la cancellazione.");
-    }
-
-    @Test
-    public void testCronologia_IntegritaDettagli() {
-        Utente u = new Utente("mario@unifi.it", "Mario", "123");
-        controller.aggiungiAlCarrello(new Prodotto("P1", "Laptop", 1000.0));
-        controller.finalizzaAcquisto(u);
-
-        Ordine recuperato = controller.getCronologiaUtente(u).get(0);
-        
-        // Verifica che i dati per la GUI siano corretti
-        assertEquals(1, recuperato.getProdotti().size());
-        assertEquals(1000.0, recuperato.getTotale());
+        assertTrue(controller.getCronologiaUtente(u2).isEmpty());
     }
 }

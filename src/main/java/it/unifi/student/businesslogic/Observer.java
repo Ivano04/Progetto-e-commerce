@@ -1,8 +1,5 @@
 package it.unifi.student.businesslogic;
-
-import it.unifi.student.domain.Ordine;
-
 public interface Observer {
-    // Metodo chiamato quando il Subject notifica un cambiamento
-    void update(Ordine ordine);
+    // Ora l'observer sa COSA è successo e riceve i DATI correlati
+    void update(TipoEvento evento, Object data);
 }
