@@ -16,5 +16,9 @@ INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P08', 'Sedia da Ufficio Pro', 2
 
 -- 3. Utente di test per il login
 INSERT INTO Utente (email, nome, password) 
-VALUES ('Rossi', 'Mario', 'Rossi')
+VALUES 
+('Rossi', 'Mario', 'Rossi'),
+('giuseppeverdi@unifi.it', 'Giuseppe', '5678'),
+('MarcoVerdi@unifi.it', 'Marco', '1234')
+
 ON CONFLICT (email) DO NOTHING;

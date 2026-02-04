@@ -5,10 +5,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Implementazione JDBC del DAO per la gestione dei Prodotti.
- * Utilizza PostgreSQL per la persistenza dei dati.
- */
+
+//Implementazione JDBC del DAO per la gestione dei Prodotti.
+//Utilizza PostgreSQL per la persistenza dei dati.
+
 public class ProdottoDAOImpl implements ProdottoDAO {
 
     private static ProdottoDAOImpl instance;
@@ -16,9 +16,9 @@ public class ProdottoDAOImpl implements ProdottoDAO {
     // Costruttore privato per pattern Singleton
     private ProdottoDAOImpl() {}
 
-    /**
-     * Restituisce l'unica istanza della classe.
-     */
+    
+    //Restituisce l'unica istanza della classe.
+    
     public static synchronized ProdottoDAOImpl getInstance() {
         if (instance == null) {
             instance = new ProdottoDAOImpl();
@@ -26,10 +26,10 @@ public class ProdottoDAOImpl implements ProdottoDAO {
         return instance;
     }
 
-    /**
-     * Recupera l'elenco completo dei prodotti dal database.
-     * Implementa la funzione 'READ' dello schema CRUD[cite: 812].
-     */
+    
+    //Recupera l'elenco completo dei prodotti dal database.
+    //Implementa la funzione 'READ' dello schema CRUD.
+     
     @Override
     public List<Prodotto> getAllProdotti() {
         List<Prodotto> catalogo = new ArrayList<>();
@@ -40,7 +40,7 @@ public class ProdottoDAOImpl implements ProdottoDAO {
              ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                // Mapping: Trasformazione della riga del DB in oggetto Domain [cite: 583-584]
+                // Mapping: Trasformazione della riga del DB in oggetto Domain 
                 catalogo.add(new Prodotto(
                     rs.getString("id"),
                     rs.getString("nome"),
@@ -54,10 +54,10 @@ public class ProdottoDAOImpl implements ProdottoDAO {
         return catalogo;
     }
 
-    /**
-     * Ricerca un prodotto specifico tramite il suo identificativo univoco.
-     * Utilizza PreparedStatement per prevenire SQL Injection.
-     */
+    
+    //Ricerca un prodotto specifico tramite il suo identificativo univoco.
+    //Utilizza PreparedStatement per prevenire SQL Injection.
+    
     @Override
     public Prodotto getProdottoById(String id) {
         String query = "SELECT * FROM Prodotto WHERE id = ?";

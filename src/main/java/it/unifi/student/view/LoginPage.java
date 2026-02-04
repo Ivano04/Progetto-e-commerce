@@ -4,8 +4,14 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import it.unifi.student.businesslogic.AcquistoController;
+import it.unifi.student.businesslogic.CredenzialiNonValideException;
 import it.unifi.student.domain.Utente;
 
+/**
+ * Pagina di accesso dell'e-commerce.
+ * Gestisce l'interazione con l'utente per l'autenticazione e 
+ * visualizza messaggi di errore in caso di credenziali non valide.
+ */
 public class LoginPage extends JFrame {
 
     private AcquistoController controller;
@@ -17,8 +23,8 @@ public class LoginPage extends JFrame {
         setTitle("Accesso - UNIFI E-Commerce");
         setSize(450, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new GridBagLayout()); // Ottimo per centrare la "Card"
-        getContentPane().setBackground(new Color(236, 240, 241)); // Grigio azzurrato moderno
+        setLayout(new GridBagLayout()); 
+        getContentPane().setBackground(new Color(236, 240, 241)); 
 
         // --- 1. Creazione della "Login Card" ---
         JPanel card = new JPanel();
@@ -30,19 +36,16 @@ public class LoginPage extends JFrame {
         ));
 
         // --- 2. Elementi Grafici ---
-        // Titolo
         JLabel lblTitolo = new JLabel("Login");
         lblTitolo.setFont(new Font("Arial", Font.BOLD, 28));
         lblTitolo.setForeground(new Color(44, 62, 80));
         lblTitolo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Sottotitolo
         JLabel lblSotto = new JLabel("Inserisci le tue credenziali");
         lblSotto.setForeground(Color.GRAY);
         lblSotto.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblSotto.setBorder(new EmptyBorder(0, 0, 20, 0));
 
-        // Campi Input
         JTextField txtEmail = new JTextField();
         txtEmail.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         txtEmail.setBorder(BorderFactory.createTitledBorder("Email"));
@@ -51,31 +54,41 @@ public class LoginPage extends JFrame {
         txtPass.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         txtPass.setBorder(BorderFactory.createTitledBorder("Password"));
 
-        // Bottone Accedi
         JButton btnLogin = new JButton("ACCEDI");
         btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnLogin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
-        btnLogin.setBackground(new Color(52, 152, 219)); // Blu luminoso
+        btnLogin.setBackground(new Color(52, 152, 219)); 
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFont(new Font("Arial", Font.BOLD, 14));
         btnLogin.setFocusPainted(false);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- 3. Logica del Bottone ---
+        // --- 3. Logica del Bottone con Gestione Eccezioni ---
         btnLogin.addActionListener(e -> {
             String email = txtEmail.getText();
             String password = new String(txtPass.getPassword());
 
-            // Simulazione Login (Per il database reale modificheremo questa parte)
-            if (!email.isEmpty() && !password.isEmpty()) {
-                Utente utenteLoggato = new Utente(email, "Studente Unifi", password);
-                
-                // Passaggio alla HomePage
-                new HomePage(controller, utenteLoggato).setVisible(true);
-                this.dispose(); // Chiude la login
-            } else {
+            // Controllo preliminare per campi vuoti
+            if (email.isEmpty() || password.isEmpty()) {
                 JOptionPane.showMessageDialog(this, 
                     "Inserisci email e password!", 
+                    "Campi mancanti", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                // Tenta l'autenticazione tramite il Controller 
+                // Il metodo ora interroga il database PostgreSQL reale
+                Utente utenteLoggato = controller.autentica(email, password);
+                
+                // Se non viene lanciata l'eccezione, l'accesso è autorizzato
+                new HomePage(controller, utenteLoggato).setVisible(true);
+                this.dispose(); 
+                
+            } catch (CredenzialiNonValideException ex) {
+                // Cattura l'errore sollevato dalla Business Logic e mostra il messaggio 
+                JOptionPane.showMessageDialog(this, 
+                    ex.getMessage(), 
                     "Errore di accesso", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -89,9 +102,7 @@ public class LoginPage extends JFrame {
         card.add(Box.createRigidArea(new Dimension(0, 25)));
         card.add(btnLogin);
 
-        // Aggiunta della Card alla finestra (GridBag la centrerà automaticamente)
         add(card);
-
         setLocationRelativeTo(null);
     }
 }

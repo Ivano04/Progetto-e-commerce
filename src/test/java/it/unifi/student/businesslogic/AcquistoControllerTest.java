@@ -35,9 +35,10 @@ public class AcquistoControllerTest {
         // Uso delle implementazioni reali (Singleton) come previsto dal disciplinare
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance(); 
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
+        UtenteDAO uDao = UtenteDAOImpl.getInstance();
         oDao.clear(); // Garantisce l'indipendenza dei test 
 
-        controller = new AcquistoController(pDao, oDao);
+        controller = new AcquistoController(pDao, oDao, uDao);
         stubObserver = new StubObserver();
         controller.attach(stubObserver);
     }
@@ -116,5 +117,17 @@ public class AcquistoControllerTest {
         
         assertTrue(controller.getCarrello().isEmpty(), "Il carrello dovrebbe essere vuoto dopo la rimozione");
         assertEquals(0.0, controller.getTotaleCarrello(), "Il totale dovrebbe tornare a 0");
+    }
+    //test che verifica se il sistema lancia l'eccezione giusta in caso un utente non registrato provi ad accedere
+    @Test
+    public void testAutentica_CredenzialiInesistenti_LanciaException() {
+        // Setup: credenziali non presenti nel file default.sql
+        String emailErrata = "non.esisto@studenti.unifi.it";
+        String passwordErrata = "12345";
+
+        // Verifica strutturale del lancio dell'eccezione [cite: 915]
+        assertThrows(CredenzialiNonValideException.class, () -> {
+            controller.autentica(emailErrata, passwordErrata);
+        }, "Il controller doveva lanciare CredenzialiNonValideException");
     }
 }

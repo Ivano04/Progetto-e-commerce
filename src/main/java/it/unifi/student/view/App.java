@@ -21,10 +21,11 @@ public class App {
         // Ora le istanze restituite lavorano direttamente su PostgreSQL
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();        
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
+        UtenteDAO uDao = UtenteDAOImpl.getInstance();
 
         // 3. Creazione del Controller con Dependency Injection
         // Il controller riceve i DAO senza sapere che ora puntano a un DB reale
-        AcquistoController controller = new AcquistoController(pDao, oDao);
+        AcquistoController controller = new AcquistoController(pDao, oDao, uDao);
 
         // 4. Configurazione Pattern Observer (Event-Driven)
         // Registriamo i servizi che devono reagire agli eventi di business
