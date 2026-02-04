@@ -15,6 +15,7 @@ public class AcquistoController implements Subject {
     private List<Prodotto> carrelloAttuale;
     private ProdottoDAO prodottoDAO;
     private OrdineDAO ordineDAO;
+    private UtenteDAO utenteDAO;
     
     // Lista degli osservatori registrati
     private List<Observer> observers = new ArrayList<>();
@@ -24,10 +25,11 @@ public class AcquistoController implements Subject {
      * @param prodottoDAO DAO per l'accesso al catalogo prodotti.
      * @param ordineDAO DAO per la persistenza degli ordini.
      */
-    public AcquistoController(ProdottoDAO prodottoDAO, OrdineDAO ordineDAO) {
+    public AcquistoController(ProdottoDAO prodottoDAO, OrdineDAO ordineDAO, UtenteDAO utenteDAO) {
         this.carrelloAttuale = new ArrayList<>();
         this.prodottoDAO = prodottoDAO;
         this.ordineDAO = ordineDAO;
+        this.utenteDAO = utenteDAO;
     }
 
     //Implementazione dell'interfaccia Subject
@@ -128,5 +130,13 @@ public class AcquistoController implements Subject {
         return ordineDAO.findAll().stream()
             .filter(o -> o.getCliente().getEmail().equals(u.getEmail()))
             .toList();
+    }
+    // Aggiungi questo nel controller
+    public Utente autentica(String email, String password) throws CredenzialiNonValideException {
+        Utente u = utenteDAO.findByEmailAndPassword(email, password);
+        if (u == null) {
+            throw new CredenzialiNonValideException("Credenziali non esistenti: l'utente non è registrato.");
+        }
+        return u;
     }
 }
