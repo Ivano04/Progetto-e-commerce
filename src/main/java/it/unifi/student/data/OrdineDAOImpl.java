@@ -132,4 +132,6 @@ public class OrdineDAOImpl implements OrdineDAO {
         DatabaseManager.executeSqlScript("/sql/reset.sql");
         DatabaseManager.executeSqlScript("/sql/schema.sql");
     }
+
+    
 }
