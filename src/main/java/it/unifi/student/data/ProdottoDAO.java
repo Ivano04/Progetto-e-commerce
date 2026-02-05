@@ -9,4 +9,8 @@ public interface ProdottoDAO {
     
     // Cerca un prodotto specifico per ID
     Prodotto getProdottoById(String id);
+    
+    // METODI PER L'ADMIN
+    void save(Prodotto p);
+    void delete(String id);
 }

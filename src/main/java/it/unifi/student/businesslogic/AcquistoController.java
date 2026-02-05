@@ -173,4 +173,17 @@ public class AcquistoController implements Subject {
         // ma per ora lo gestiremo nascondendo il bottone nella grafica.
         utenteDAO.deleteUtente(emailDaCancellare);
     }
+
+    // =========================================================
+    // NUOVI METODI AGGIUNTI PER LA GESTIONE PRODOTTI ADMIN
+    // =========================================================
+
+    public void aggiungiNuovoProdotto(String id, String nome, double prezzo) {
+        Prodotto p = new Prodotto(id, nome, prezzo);
+        prodottoDAO.save(p);
+    }
+
+    public void rimuoviProdotto(String id) {
+        prodottoDAO.delete(id);
+    }
 }
