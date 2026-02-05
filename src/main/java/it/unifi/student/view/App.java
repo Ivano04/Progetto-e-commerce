@@ -1,34 +1,33 @@
 package it.unifi.student.view;
 
-import it.unifi.student.data.*;
-import it.unifi.student.businesslogic.*;
 import javax.swing.SwingUtilities;
 
-/**
- * Punto di ingresso principale dell'applicazione.
- * Gestisce l'inizializzazione del database e l'iniezione delle dipendenze.
- */
+import it.unifi.student.businesslogic.AcquistoController;
+import it.unifi.student.businesslogic.EmailService;
+import it.unifi.student.businesslogic.LogService;
+import it.unifi.student.data.OrdineDAO;
+import it.unifi.student.data.OrdineDAOImpl;
+import it.unifi.student.data.ProdottoDAO;
+import it.unifi.student.data.ProdottoDAOImpl;
+import it.unifi.student.data.UtenteDAO;
+import it.unifi.student.data.UtenteDAOImpl;
+
+
 public class App {
     public static void main(String[] args) {
 
         // 1. Inizializzazione Database 
-        // Eseguiamo lo schema per creare le tabelle e il file default per popolare il catalogo
-        System.out.println("LOG: Avvio inizializzazione database...");
-        DatabaseManager.executeSqlScript("/sql/schema.sql");
-        DatabaseManager.executeSqlScript("/sql/default.sql");
+        System.out.println("LOG: Avvio applicazione...");
 
         // 2. Inizializzazione dei DAO (Pattern Singleton e JDBC)
-        // Ora le istanze restituite lavorano direttamente su PostgreSQL
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();        
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
         UtenteDAO uDao = UtenteDAOImpl.getInstance();
 
         // 3. Creazione del Controller con Dependency Injection
-        // Il controller riceve i DAO senza sapere che ora puntano a un DB reale
         AcquistoController controller = new AcquistoController(pDao, oDao, uDao);
 
         // 4. Configurazione Pattern Observer (Event-Driven)
-        // Registriamo i servizi che devono reagire agli eventi di business
         controller.attach(new EmailService());
         controller.attach(new LogService());
 
