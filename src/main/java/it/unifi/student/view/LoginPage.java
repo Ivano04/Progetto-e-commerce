@@ -1,17 +1,28 @@
 package it.unifi.student.view;
 
-import javax.swing.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagLayout;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import java.awt.*;
+
 import it.unifi.student.businesslogic.AcquistoController;
 import it.unifi.student.businesslogic.CredenzialiNonValideException;
 import it.unifi.student.domain.Utente;
 
-/**
- * Pagina di accesso dell'e-commerce.
- * Gestisce l'interazione con l'utente per l'autenticazione e 
- * visualizza messaggi di errore in caso di credenziali non valide.
- */
 public class LoginPage extends JFrame {
 
     private AcquistoController controller;
@@ -21,7 +32,7 @@ public class LoginPage extends JFrame {
 
         // --- Configurazione Finestra ---
         setTitle("Accesso - UNIFI E-Commerce");
-        setSize(450, 500);
+        setSize(450, 550); // Ho aumentato leggermente l'altezza per farci stare i due tasti
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridBagLayout()); 
         getContentPane().setBackground(new Color(236, 240, 241)); 
@@ -54,6 +65,7 @@ public class LoginPage extends JFrame {
         txtPass.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         txtPass.setBorder(BorderFactory.createTitledBorder("Password"));
 
+        // --- Bottone ACCEDI (Blu) ---
         JButton btnLogin = new JButton("ACCEDI");
         btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnLogin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
@@ -63,44 +75,57 @@ public class LoginPage extends JFrame {
         btnLogin.setFocusPainted(false);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- 3. Logica del Bottone con Gestione Eccezioni ---
+        // --- Bottone REGISTRATI (Verde) --- [PARTE NUOVA]
+        JButton btnRegister = new JButton("REGISTRATI");
+        btnRegister.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnRegister.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        btnRegister.setBackground(new Color(46, 204, 113)); // Verde
+        btnRegister.setForeground(Color.WHITE);
+        btnRegister.setFont(new Font("Arial", Font.BOLD, 14));
+        btnRegister.setFocusPainted(false);
+        btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // --- 3. Logica dei Bottoni ---
+        
+        // Logica Login
         btnLogin.addActionListener(e -> {
             String email = txtEmail.getText();
             String password = new String(txtPass.getPassword());
 
-            // Controllo preliminare per campi vuoti
             if (email.isEmpty() || password.isEmpty()) {
-                JOptionPane.showMessageDialog(this, 
-                    "Inserisci email e password!", 
-                    "Campi mancanti", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Inserisci email e password!", "Attenzione", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             try {
-                // Tenta l'autenticazione tramite il Controller 
-                // Il metodo ora interroga il database PostgreSQL reale
                 Utente utenteLoggato = controller.autentica(email, password);
-                
-                // Se non viene lanciata l'eccezione, l'accesso è autorizzato
                 new HomePage(controller, utenteLoggato).setVisible(true);
                 this.dispose(); 
-                
             } catch (CredenzialiNonValideException ex) {
-                // Cattura l'errore sollevato dalla Business Logic e mostra il messaggio 
-                JOptionPane.showMessageDialog(this, 
-                    ex.getMessage(), 
-                    "Errore di accesso", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, ex.getMessage(), "Errore di accesso", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // --- 4. Assemblaggio Card ---
+        // Logica Registrazione (Apre la tua nuova pagina)
+        btnRegister.addActionListener(e -> {
+            new RegisterPage(controller).setVisible(true);
+            // Non chiudiamo la login (this.dispose()) così l'utente può tornare qui dopo la registrazione
+        });
+
+        // --- 4. Assemblaggio Card (QUESTA PARTE TI MANCAVA) ---
         card.add(lblTitolo);
         card.add(lblSotto);
         card.add(txtEmail);
         card.add(Box.createRigidArea(new Dimension(0, 15)));
         card.add(txtPass);
         card.add(Box.createRigidArea(new Dimension(0, 25)));
+        
+        // Aggiungo il bottone LOGIN
         card.add(btnLogin);
+        
+        // Aggiungo uno spazietto e poi il bottone REGISTRAZIONE
+        card.add(Box.createRigidArea(new Dimension(0, 10))); 
+        card.add(btnRegister); // <--- ECCOLO! Senza questo, il tasto non appare.
 
         add(card);
         setLocationRelativeTo(null);

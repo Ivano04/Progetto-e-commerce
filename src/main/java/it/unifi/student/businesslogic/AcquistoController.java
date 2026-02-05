@@ -1,9 +1,14 @@
 package it.unifi.student.businesslogic;
 
-import it.unifi.student.domain.*;
-import it.unifi.student.data.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import it.unifi.student.data.OrdineDAO;
+import it.unifi.student.data.ProdottoDAO;
+import it.unifi.student.data.UtenteDAO;
+import it.unifi.student.domain.Ordine;
+import it.unifi.student.domain.Prodotto;
+import it.unifi.student.domain.Utente;
 
 /**
  * Controller per la gestione del processo di acquisto.
@@ -24,6 +29,7 @@ public class AcquistoController implements Subject {
      * Costruttore con Dependency Injection.
      * @param prodottoDAO DAO per l'accesso al catalogo prodotti.
      * @param ordineDAO DAO per la persistenza degli ordini.
+     * @param utenteDAO DAO per la gestione utenti.
      */
     public AcquistoController(ProdottoDAO prodottoDAO, OrdineDAO ordineDAO, UtenteDAO utenteDAO) {
         this.carrelloAttuale = new ArrayList<>();
@@ -64,8 +70,7 @@ public class AcquistoController implements Subject {
         if (p != null) carrelloAttuale.add(p);
     }
 
-    //Finalizza l'acquisto creando un ordine e notificando gli osservatori.
-     
+    // Finalizza l'acquisto creando un ordine e notificando gli osservatori.
     public Ordine finalizzaAcquisto(Utente utente) {
         if (carrelloAttuale.isEmpty()) return null;
 
@@ -77,13 +82,13 @@ public class AcquistoController implements Subject {
         double totale = carrelloAttuale.stream().mapToDouble(Prodotto::getPrezzo).sum();
         nuovoOrdine.setTotale(totale);
 
-        // Salvataggio nel database simulato
+        // Salvataggio nel database
         ordineDAO.save(nuovoOrdine);
         
         // Reset del carrello
         carrelloAttuale.clear();
         
-        // NOTIFICA EVENTO: Passaggio chiave per l'estensibilità del sistema [cite: 121]
+        // NOTIFICA EVENTO: Passaggio chiave per l'estensibilità del sistema
         notifyObservers(TipoEvento.ACQUISTO_COMPLETATO, nuovoOrdine);
         
         return nuovoOrdine;
@@ -101,7 +106,7 @@ public class AcquistoController implements Subject {
 
         if (daCancellare != null) {
             ordineDAO.removeById(id);
-            // NOTIFICA EVENTO: Permette alla View e al LogService di reagire [cite: 121]
+            // NOTIFICA EVENTO: Permette alla View e al LogService di reagire
             notifyObservers(TipoEvento.ORDINE_CANCELLATO, daCancellare);
         }
     }
@@ -131,12 +136,29 @@ public class AcquistoController implements Subject {
             .filter(o -> o.getCliente().getEmail().equals(u.getEmail()))
             .toList();
     }
-    // Aggiungi questo nel controller
+
+    // --- GESTIONE UTENTI (Login e Registrazione) ---
+
     public Utente autentica(String email, String password) throws CredenzialiNonValideException {
         Utente u = utenteDAO.findByEmailAndPassword(email, password);
         if (u == null) {
             throw new CredenzialiNonValideException("Credenziali non esistenti: l'utente non è registrato.");
         }
         return u;
+    }
+
+    /**
+     * Metodo aggiornato per gestire 3 campi: Nome, Email, Password.
+     */
+    public boolean registraUtente(String nome, String email, String password) {
+        // Controllo che nessuno dei tre campi sia vuoto
+        if (nome == null || nome.isEmpty() || 
+            email == null || email.isEmpty() || 
+            password == null || password.isEmpty()) {
+            return false;
+        }
+        
+        // Passa tutti e tre i dati al DAO
+        return utenteDAO.register(nome, email, password);
     }
 }
