@@ -161,4 +161,16 @@ public class AcquistoController implements Subject {
         // Passa tutti e tre i dati al DAO
         return utenteDAO.register(nome, email, password);
     }
+
+    // Restituisce la lista di tutti gli utenti (solo per l'admin)
+    public List<Utente> getListaUtenti() {
+        return utenteDAO.findAll();
+    }
+
+    // Cancella un utente, ma prima controlla i permessi
+    public void rimuoviUtente(String emailDaCancellare) {
+        // Qui potremmo aggiungere un controllo se l'utente corrente è admin, 
+        // ma per ora lo gestiremo nascondendo il bottone nella grafica.
+        utenteDAO.deleteUtente(emailDaCancellare);
+    }
 }

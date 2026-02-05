@@ -1,10 +1,21 @@
 package it.unifi.student.businesslogic;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import it.unifi.student.domain.*;
-import it.unifi.student.data.*;
+
+import it.unifi.student.data.OrdineDAO;
+import it.unifi.student.data.OrdineDAOImpl;
+import it.unifi.student.data.ProdottoDAO;
+import it.unifi.student.data.ProdottoDAOImpl;
+import it.unifi.student.data.UtenteDAO;
+import it.unifi.student.data.UtenteDAOImpl;
+import it.unifi.student.domain.Ordine;
+import it.unifi.student.domain.Prodotto;
+import it.unifi.student.domain.Utente;
 
 /**
  * Test di unità per AcquistoController.
@@ -48,7 +59,7 @@ public class AcquistoControllerTest {
     @Test
     public void testObserver_NotificaAcquistoCompletato() {
         controller.aggiungiAlCarrello(new Prodotto("T1", "Prodotto Test", 50.0));
-        Utente u = new Utente("test@unifi.it", "User", "pwd");
+        Utente u = new Utente("test@unifi.it", "User", "pwd",false);
         
         Ordine result = controller.finalizzaAcquisto(u);
 
@@ -60,7 +71,7 @@ public class AcquistoControllerTest {
 
     @Test
     public void testObserver_NotificaCancellazioneOrdine() {
-        Utente u = new Utente("mario@unifi.it", "Mario", "123");
+        Utente u = new Utente("mario@unifi.it", "Mario", "123",false);
         controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
         Ordine effettuato = controller.finalizzaAcquisto(u);
         
@@ -90,7 +101,7 @@ public class AcquistoControllerTest {
         controller.aggiungiAlCarrello(new Prodotto("T1", "P1", 10.0));
         controller.aggiungiAlCarrello(new Prodotto("T2", "P2", 20.0));
 
-        Ordine result = controller.finalizzaAcquisto(new Utente("a@b.it", "A", "p"));
+        Ordine result = controller.finalizzaAcquisto(new Utente("a@b.it", "A", "p",false));
 
         assertNotNull(result);
         assertEquals(30.0, result.getTotale());
@@ -98,8 +109,8 @@ public class AcquistoControllerTest {
 
     @Test
     public void testCronologia_FiltroPerUtente() {
-        Utente u1 = new Utente("mario@unifi.it", "Mario", "123");
-        Utente u2 = new Utente("luigi@unifi.it", "Luigi", "456");
+        Utente u1 = new Utente("mario@unifi.it", "Mario", "123",false);
+        Utente u2 = new Utente("luigi@unifi.it", "Luigi", "456",false);
 
         controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
         controller.finalizzaAcquisto(u1);

@@ -4,6 +4,10 @@ DELETE FROM Ordine;
 DELETE FROM Prodotto;
 DELETE FROM Utente;
 
+-- ADMIN PREFISSATO 
+INSERT INTO utente (email, password, nome, is_admin) 
+VALUES ('admin@google.it', 'admin', 'Admin', TRUE);
+
 -- 2. Catalogo Prodotti (Totale: 8 articoli)
 INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P01', 'Laptop Pro', 1500.00);
 INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P02', 'Smartphone Plus', 800.00);
@@ -12,7 +16,7 @@ INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P04', 'Tastiera Meccanica RGB',
 INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P05', 'Mouse Wireless Ergonomico', 85.50);
 INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P06', 'Cuffie Noise Cancelling', 299.00);
 INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P07', 'Webcam 4K UltraHD', 180.00);
-INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P08', 'Sedia da Ufficio Pro', 245.00);
+--INSERT INTO Prodotto (id, nome, prezzo) VALUES ('P08', 'Sedia da Ufficio Pro', 245.00);
 
 -- 3. Utente di test per il login
 INSERT INTO Utente (email, nome, password) 

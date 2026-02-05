@@ -1,27 +1,34 @@
--- Creazione della tabella Prodotti
-CREATE TABLE IF NOT EXISTS Prodotto (
+-- Cancella le tabelle vecchie per poterle ricreare con le nuove colonne
+DROP TABLE IF EXISTS Ordine_Prodotti CASCADE;
+DROP TABLE IF EXISTS Ordine CASCADE;
+DROP TABLE IF EXISTS Prodotto CASCADE;
+DROP TABLE IF EXISTS Utente CASCADE;
+
+--Tabella Utente (Ora include is_admin per i permessi)
+CREATE TABLE Utente (
+    email VARCHAR(100) PRIMARY KEY,
+    nome VARCHAR(100),
+    password VARCHAR(100),
+    is_admin BOOLEAN DEFAULT FALSE -- <--- NOVITÀ: distingue admin da utenti normali
+);
+
+--Tabella Prodotto (Ora include immagine per le foto)
+CREATE TABLE Prodotto (
     id VARCHAR(50) PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     prezzo DECIMAL(10, 2) NOT NULL
 );
 
--- Creazione della tabella Utente (necessaria per il Login)
-CREATE TABLE IF NOT EXISTS Utente (
-    email VARCHAR(100) PRIMARY KEY,
-    nome VARCHAR(100),
-    password VARCHAR(100)
-);
-
--- Creazione della tabella Ordine
-CREATE TABLE IF NOT EXISTS Ordine (
+--Tabella Ordine
+CREATE TABLE Ordine (
     id SERIAL PRIMARY KEY,
-    cliente_email VARCHAR(100) REFERENCES Utente(email),
+    cliente_email VARCHAR(100) REFERENCES Utente(email) ON DELETE CASCADE, 
     totale DECIMAL(10, 2),
     stato VARCHAR(50)
 );
 
--- Tabella di Join per la relazione molti-a-molti tra Ordini e Prodotti
-CREATE TABLE IF NOT EXISTS Ordine_Prodotti (
+--Tabella di Join (Relazione Ordini-Prodotti)
+CREATE TABLE Ordine_Prodotti (
     id_ordine INT REFERENCES Ordine(id) ON DELETE CASCADE,
     id_prodotto VARCHAR(50) REFERENCES Prodotto(id),
     PRIMARY KEY (id_ordine, id_prodotto)

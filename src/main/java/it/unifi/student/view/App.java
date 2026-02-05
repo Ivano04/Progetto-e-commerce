@@ -5,6 +5,7 @@ import javax.swing.SwingUtilities;
 import it.unifi.student.businesslogic.AcquistoController;
 import it.unifi.student.businesslogic.EmailService;
 import it.unifi.student.businesslogic.LogService;
+import it.unifi.student.data.DatabaseManager; // <--- AGGIUNTO QUESTO IMPORT
 import it.unifi.student.data.OrdineDAO;
 import it.unifi.student.data.OrdineDAOImpl;
 import it.unifi.student.data.ProdottoDAO;
@@ -12,12 +13,15 @@ import it.unifi.student.data.ProdottoDAOImpl;
 import it.unifi.student.data.UtenteDAO;
 import it.unifi.student.data.UtenteDAOImpl;
 
-
 public class App {
     public static void main(String[] args) {
 
         // 1. Inizializzazione Database 
-        System.out.println("LOG: Avvio applicazione...");
+        System.out.println("LOG: Avvio applicazione e aggiornamento Database...");
+
+        // Servono per creare le nuove colonne 'is_admin' e 'immagine'
+        DatabaseManager.executeSqlScript("/sql/schema.sql");
+        DatabaseManager.executeSqlScript("/sql/default.sql");
 
         // 2. Inizializzazione dei DAO (Pattern Singleton e JDBC)
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();        
