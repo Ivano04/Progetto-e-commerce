@@ -5,20 +5,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
-//Implementazione JDBC del DAO per la gestione dei Prodotti.
-//Utilizza PostgreSQL per la persistenza dei dati.
-
 public class ProdottoDAOImpl implements ProdottoDAO {
 
     private static ProdottoDAOImpl instance;
 
-    // Costruttore privato per pattern Singleton
     private ProdottoDAOImpl() {}
 
-    
-    //Restituisce l'unica istanza della classe.
-    
     public static synchronized ProdottoDAOImpl getInstance() {
         if (instance == null) {
             instance = new ProdottoDAOImpl();
@@ -26,10 +18,6 @@ public class ProdottoDAOImpl implements ProdottoDAO {
         return instance;
     }
 
-    
-    //Recupera l'elenco completo dei prodotti dal database.
-    //Implementa la funzione 'READ' dello schema CRUD.
-     
     @Override
     public List<Prodotto> getAllProdotti() {
         List<Prodotto> catalogo = new ArrayList<>();
@@ -40,7 +28,6 @@ public class ProdottoDAOImpl implements ProdottoDAO {
              ResultSet rs = stmt.executeQuery(query)) {
 
             while (rs.next()) {
-                // Mapping: Trasformazione della riga del DB in oggetto Domain 
                 catalogo.add(new Prodotto(
                     rs.getString("id"),
                     rs.getString("nome"),
@@ -54,10 +41,6 @@ public class ProdottoDAOImpl implements ProdottoDAO {
         return catalogo;
     }
 
-    
-    //Ricerca un prodotto specifico tramite il suo identificativo univoco.
-    //Utilizza PreparedStatement per prevenire SQL Injection.
-    
     @Override
     public Prodotto getProdottoById(String id) {
         String query = "SELECT * FROM Prodotto WHERE id = ?";
@@ -77,9 +60,36 @@ public class ProdottoDAOImpl implements ProdottoDAO {
                 }
             }
         } catch (SQLException e) {
-            System.err.println("Errore durante il recupero del prodotto ID: " + id);
             e.printStackTrace();
         }
         return null;
+    }
+
+    // --- NUOVI METODI IMPLEMENTATI ---
+
+    @Override
+    public void save(Prodotto p) {
+        String query = "INSERT INTO Prodotto (id, nome, prezzo) VALUES (?, ?, ?)";
+        try (Connection conn = ConnectionManager.getInstance().getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, p.getId());
+            pstmt.setString(2, p.getNome());
+            pstmt.setDouble(3, p.getPrezzo());
+            pstmt.executeUpdate();
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
+    }
+
+    @Override
+    public void delete(String id) {
+        String query = "DELETE FROM Prodotto WHERE id = ?";
+        try (Connection conn = ConnectionManager.getInstance().getConnection();
+            PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
+        }
     }
 }
