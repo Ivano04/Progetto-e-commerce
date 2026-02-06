@@ -5,7 +5,7 @@ import javax.swing.SwingUtilities;
 import it.unifi.student.businesslogic.AcquistoController;
 import it.unifi.student.businesslogic.EmailService;
 import it.unifi.student.businesslogic.LogService;
-import it.unifi.student.data.DatabaseManager; // <--- AGGIUNTO QUESTO IMPORT
+import it.unifi.student.data.DatabaseManager; 
 import it.unifi.student.data.OrdineDAO;
 import it.unifi.student.data.OrdineDAOImpl;
 import it.unifi.student.data.ProdottoDAO;
@@ -17,11 +17,14 @@ public class App {
     public static void main(String[] args) {
 
         // 1. Inizializzazione Database 
-        System.out.println("LOG: Avvio applicazione e aggiornamento Database...");
+        System.out.println("LOG: Avvio applicazione...");
 
-        // Servono per creare le nuove colonne 'is_admin' e 'immagine'
-        DatabaseManager.executeSqlScript("/sql/schema.sql");
-        DatabaseManager.executeSqlScript("/sql/default.sql");
+        // --- PERSISTENZA ATTIVATA ---
+        // Ho commentato queste righe per evitare che il DB venga resettato ad ogni avvio.
+        // Se in futuro vorrai pulire tutto, ti basterà togliere i commenti e riavviare una volta.
+        
+        // DatabaseManager.executeSqlScript("/sql/schema.sql");
+        // DatabaseManager.executeSqlScript("/sql/default.sql");
 
         // 2. Inizializzazione dei DAO (Pattern Singleton e JDBC)
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();        

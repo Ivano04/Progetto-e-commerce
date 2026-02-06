@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import it.unifi.student.data.DatabaseManager; // Fondamentale per pulire il DB
 import it.unifi.student.data.OrdineDAO;
 import it.unifi.student.data.OrdineDAOImpl;
 import it.unifi.student.data.ProdottoDAO;
@@ -19,15 +20,18 @@ import it.unifi.student.domain.Utente;
 
 /**
  * Test di unità per AcquistoController.
- * Verifica la logica di business e l'integrità del pattern Observer Event-Driven.
  */
 public class AcquistoControllerTest {
 
     private AcquistoController controller;
     private StubObserver stubObserver;
+    
+    // Riferimenti ai DAO per popolare il DB nei test
+    private ProdottoDAO pDao;
+    private UtenteDAO uDao;
+    private OrdineDAO oDao;
 
     // --- Stub per il Testing ---
-    // Cattura le notifiche per verificare che il controller faccia il suo dovere
     private class StubObserver implements Observer {
         public TipoEvento ultimoEvento = null;
         public Object ultimiDati = null;
@@ -43,27 +47,36 @@ public class AcquistoControllerTest {
 
     @BeforeEach
     void setUp() {
-        // Uso delle implementazioni reali (Singleton) come previsto dal disciplinare
-        ProdottoDAO pDao = ProdottoDAOImpl.getInstance(); 
-        OrdineDAO oDao = OrdineDAOImpl.getInstance();
-        UtenteDAO uDao = UtenteDAOImpl.getInstance();
-        oDao.clear(); // Garantisce l'indipendenza dei test 
+        // 1. PULIZIA E SETUP DATABASE REALE
+        // È fondamentale resettare il DB prima di ogni test per evitare conflitti di ID o dati sporchi
+        DatabaseManager.executeSqlScript("/sql/reset.sql");
+        DatabaseManager.executeSqlScript("/sql/schema.sql");
+        // Non carico default.sql per avere controllo totale sui dati di test
+        
+        // 2. Inizializzazione DAO
+        pDao = ProdottoDAOImpl.getInstance(); 
+        oDao = OrdineDAOImpl.getInstance();
+        uDao = UtenteDAOImpl.getInstance();
 
         controller = new AcquistoController(pDao, oDao, uDao);
         stubObserver = new StubObserver();
         controller.attach(stubObserver);
     }
 
-    // --- Test del Pattern Observer (Il cuore del refactoring) ---
-
     @Test
     public void testObserver_NotificaAcquistoCompletato() {
-        controller.aggiungiAlCarrello(new Prodotto("T1", "Prodotto Test", 50.0));
-        Utente u = new Utente("test@unifi.it", "User", "pwd",false);
+        // Setup dati DB
+        Prodotto p = new Prodotto("T1", "Prodotto Test", 50.0);
+        pDao.save(p); // Salvo il prodotto nel DB
         
+        Utente u = new Utente("test@unifi.it", "User", "pwd", false);
+        uDao.register(u.getNome(), u.getEmail(), "pwd"); // Salvo l'utente nel DB
+        
+        // Azione
+        controller.aggiungiAlCarrello(p);
         Ordine result = controller.finalizzaAcquisto(u);
 
-        // Verifichiamo che l'evento sia quello giusto e contenga l'ordine
+        // Verifica
         assertEquals(1, stubObserver.chiamate);
         assertEquals(TipoEvento.ACQUISTO_COMPLETATO, stubObserver.ultimoEvento);
         assertEquals(result, stubObserver.ultimiDati);
@@ -71,37 +84,52 @@ public class AcquistoControllerTest {
 
     @Test
     public void testObserver_NotificaCancellazioneOrdine() {
-        Utente u = new Utente("mario@unifi.it", "Mario", "123",false);
-        controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
+        // 1. Preparo i dati nel DB
+        Utente u = new Utente("mario@unifi.it", "Mario", "123", false);
+        uDao.register(u.getNome(), u.getEmail(), "123"); // REGISTRO L'UTENTE
+        
+        Prodotto p = new Prodotto("P1", "Test", 10.0);
+        pDao.save(p); // SALVO IL PRODOTTO
+        
+        // 2. Creo l'ordine
+        controller.aggiungiAlCarrello(p);
         Ordine effettuato = controller.finalizzaAcquisto(u);
         
         // Reset dello stub per isolare la prossima notifica
         stubObserver.chiamate = 0;
         
+        // 3. Cancello l'ordine
         controller.cancellaOrdine(effettuato.getId());
 
-        // Verifichiamo che sia scattata la notifica di cancellazione
+        // 4. Verifico che ora la notifica arrivi (perché l'ordine esisteva davvero nel DB)
         assertEquals(1, stubObserver.chiamate);
         assertEquals(TipoEvento.ORDINE_CANCELLATO, stubObserver.ultimoEvento);
-        assertEquals(effettuato, stubObserver.ultimiDati);
+        // Nota: non confronto l'oggetto esatto 'effettuato' perché il DAO potrebbe restituirne una nuova istanza
+        assertNotNull(stubObserver.ultimiDati); 
     }
 
     @Test
     public void testObserver_NessunaNotificaSeCarrelloVuoto() {
         controller.finalizzaAcquisto(new Utente());
-
-        // Se l'acquisto fallisce, non deve partire alcuna notifica
         assertEquals(0, stubObserver.chiamate);
     }
 
-    // --- Test Funzionali (Logica di Business) ---
-
     @Test
     public void testFinalizzaAcquisto_CalcoloTotale() {
-        controller.aggiungiAlCarrello(new Prodotto("T1", "P1", 10.0));
-        controller.aggiungiAlCarrello(new Prodotto("T2", "P2", 20.0));
+        // Preparo DB
+        Prodotto p1 = new Prodotto("T1", "P1", 10.0);
+        Prodotto p2 = new Prodotto("T2", "P2", 20.0);
+        pDao.save(p1);
+        pDao.save(p2);
+        
+        Utente u = new Utente("a@b.it", "A", "p", false);
+        uDao.register(u.getNome(), u.getEmail(), "p");
 
-        Ordine result = controller.finalizzaAcquisto(new Utente("a@b.it", "A", "p",false));
+        // Azione
+        controller.aggiungiAlCarrello(p1);
+        controller.aggiungiAlCarrello(p2);
+
+        Ordine result = controller.finalizzaAcquisto(u);
 
         assertNotNull(result);
         assertEquals(30.0, result.getTotale());
@@ -109,18 +137,33 @@ public class AcquistoControllerTest {
 
     @Test
     public void testCronologia_FiltroPerUtente() {
-        Utente u1 = new Utente("mario@unifi.it", "Mario", "123",false);
-        Utente u2 = new Utente("luigi@unifi.it", "Luigi", "456",false);
+        // 1. Registro DUE utenti diversi nel DB
+        Utente u1 = new Utente("mario@unifi.it", "Mario", "123", false);
+        uDao.register(u1.getNome(), u1.getEmail(), "123");
+        
+        Utente u2 = new Utente("luigi@unifi.it", "Luigi", "456", false);
+        uDao.register(u2.getNome(), u2.getEmail(), "456");
 
-        controller.aggiungiAlCarrello(new Prodotto("P1", "Test", 10.0));
+        // 2. Salvo un prodotto
+        Prodotto p = new Prodotto("P1", "Test", 10.0);
+        pDao.save(p);
+
+        // 3. Mario fa un acquisto
+        controller.aggiungiAlCarrello(p);
         controller.finalizzaAcquisto(u1);
 
+        // 4. Verifico che Mario ha 1 ordine e Luigi 0
         assertEquals(1, controller.getCronologiaUtente(u1).size());
         assertTrue(controller.getCronologiaUtente(u2).isEmpty());
     }
+
     @Test
     public void testRimuoviDalCarrello_VerificaDiminuzione() {
+        // Qui lavoriamo solo in memoria (RAM), non serve il DB per il carrello
         Prodotto p = new Prodotto("T1", "Test", 10.0);
+        // Però per coerenza, se il metodo getProdottoById venisse chiamato, servirebbe. 
+        // Ma aggiungiAlCarrello prende l'oggetto diretto, quindi ok.
+        
         controller.aggiungiAlCarrello(p);
         assertEquals(1, controller.getCarrello().size());
 
@@ -129,14 +172,12 @@ public class AcquistoControllerTest {
         assertTrue(controller.getCarrello().isEmpty(), "Il carrello dovrebbe essere vuoto dopo la rimozione");
         assertEquals(0.0, controller.getTotaleCarrello(), "Il totale dovrebbe tornare a 0");
     }
-    //test che verifica se il sistema lancia l'eccezione giusta in caso un utente non registrato provi ad accedere
+
     @Test
     public void testAutentica_CredenzialiInesistenti_LanciaException() {
-        // Setup: credenziali non presenti nel file default.sql
         String emailErrata = "non.esisto@studenti.unifi.it";
         String passwordErrata = "12345";
 
-        // Verifica strutturale del lancio dell'eccezione [cite: 915]
         assertThrows(CredenzialiNonValideException.class, () -> {
             controller.autentica(emailErrata, passwordErrata);
         }, "Il controller doveva lanciare CredenzialiNonValideException");

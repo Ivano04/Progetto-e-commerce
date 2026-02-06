@@ -25,8 +25,8 @@ public class HomePage extends JFrame {
 
     private AcquistoController controller;
     private Utente utente;
+    private JPanel gridPanel; 
 
-    // Costruttore
     public HomePage(AcquistoController controller, Utente utente) {
         this.controller = controller;
         this.utente = utente;
@@ -38,7 +38,7 @@ public class HomePage extends JFrame {
         setLayout(new BorderLayout());
         getContentPane().setBackground(new Color(248, 249, 250));
 
-        // --- 1. Header Moderno ---
+        // --- 1. Header (Titolo + Pannello Admin) ---
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(44, 62, 80));
         header.setBorder(new EmptyBorder(20, 30, 20, 30));
@@ -48,97 +48,129 @@ public class HomePage extends JFrame {
         titolo.setForeground(Color.WHITE);
         header.add(titolo, BorderLayout.WEST);
 
-        // --- SEZIONE ADMIN (SPOSTATA QUI DENTRO IL COSTRUTTORE) ---
+        // Sezione Admin
         if (utente.isAdmin()) {
-            JButton btnAdmin = new JButton("🗑️ GESTIONE UTENTI");
+            JPanel adminPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+            adminPanel.setOpaque(false);
+
+            // Bottone Gestione Utenti
+            JButton btnAdmin = new JButton("🗑️ UTENTI");
             btnAdmin.setBackground(Color.RED);
             btnAdmin.setForeground(Color.WHITE);
             btnAdmin.setFocusPainted(false);
-            
             btnAdmin.addActionListener(e -> {
-                // 1. Chiediamo al controller la lista degli utenti
                 List<Utente> listaUtenti = controller.getListaUtenti();
-                
-                // 2. Creiamo un array di stringhe con le email da mostrare
                 String[] emails = new String[listaUtenti.size()];
                 for (int i = 0; i < listaUtenti.size(); i++) {
-                    emails[i] = listaUtenti.get(i).getEmail() + " (" + listaUtenti.get(i).getNome() + ")";
+                    emails[i] = listaUtenti.get(i).getEmail();
                 }
+                String selezione = (String) JOptionPane.showInputDialog(this, "Elimina utente:", "Admin", JOptionPane.WARNING_MESSAGE, null, emails, null);
+                if (selezione != null && !selezione.equals(utente.getEmail())) {
+                    controller.rimuoviUtente(selezione);
+                    JOptionPane.showMessageDialog(this, "Utente eliminato.");
+                }
+            });
 
-                // 3. Mostriamo una finestrella per scegliere chi cancellare
-                String selezione = (String) JOptionPane.showInputDialog(
-                    this, 
-                    "Seleziona l'utente da eliminare:",
-                    "Pannello SuperAdmin",
-                    JOptionPane.WARNING_MESSAGE,
-                    null,
-                    emails,
-                    emails.length > 0 ? emails[0] : null
-                );
-
-                // 4. Se ha selezionato qualcuno, procediamo
-                if (selezione != null) {
-                    String emailTarget = selezione.split(" ")[0]; // Prende solo l'email
-                    
-                    if (emailTarget.equals(utente.getEmail())) {
-                        JOptionPane.showMessageDialog(this, "Non puoi cancellare te stesso!");
-                    } else {
-                        controller.rimuoviUtente(emailTarget);
-                        JOptionPane.showMessageDialog(this, "Utente " + emailTarget + " eliminato!");
+            // Bottone Aggiungi Prodotto
+            JButton btnAddProd = new JButton("➕ AGGIUNGI");
+            btnAddProd.setBackground(new Color(46, 204, 113));
+            btnAddProd.setForeground(Color.WHITE);
+            btnAddProd.setFocusPainted(false);
+            btnAddProd.addActionListener(e -> {
+                String id = JOptionPane.showInputDialog(this, "ID Prodotto (es. P09):");
+                String nome = JOptionPane.showInputDialog(this, "Nome Prodotto:");
+                String prezzoStr = JOptionPane.showInputDialog(this, "Prezzo:");
+                
+                if (id != null && nome != null && prezzoStr != null) {
+                    try {
+                        controller.aggiungiNuovoProdotto(id, nome, Double.parseDouble(prezzoStr));
+                        refreshCatalogo(); 
+                        JOptionPane.showMessageDialog(this, "Prodotto aggiunto!");
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, "Dati non validi.");
                     }
                 }
             });
 
-            // Aggiungiamo il bottone Admin all'EST (Destra) dell'Header
-            header.add(btnAdmin, BorderLayout.EAST);
+            // Bottone Rimuovi Prodotto
+            JButton btnRemProd = new JButton("🗑️ RIMUOVI PROD.");
+            btnRemProd.setBackground(new Color(230, 126, 34));
+            btnRemProd.setForeground(Color.WHITE);
+            btnRemProd.setFocusPainted(false);
+            btnRemProd.addActionListener(e -> {
+                List<Prodotto> catalogo = controller.getCatalogoProdotti();
+                String[] ids = catalogo.stream().map(Prodotto::getId).toArray(String[]::new);
+                
+                String selezione = (String) JOptionPane.showInputDialog(this, "Elimina prodotto:", "Admin", JOptionPane.WARNING_MESSAGE, null, ids, null);
+                
+                if (selezione != null) {
+                    controller.rimuoviProdotto(selezione);
+                    refreshCatalogo();
+                    JOptionPane.showMessageDialog(this, "Prodotto rimosso!");
+                }
+            });
+
+            adminPanel.add(btnAddProd);
+            adminPanel.add(btnRemProd);
+            adminPanel.add(btnAdmin);
+            header.add(adminPanel, BorderLayout.EAST);
         }
-        // ---------------------------------------------------------
         
         add(header, BorderLayout.NORTH);
 
-        // --- 2. Griglia Prodotti (4 per riga) ---
-        JPanel gridPanel = new JPanel(new GridLayout(0, 4, 20, 20));
+        // --- 2. Griglia Prodotti ---
+        gridPanel = new JPanel(new GridLayout(0, 4, 20, 20));
         gridPanel.setBackground(new Color(248, 249, 250));
         gridPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
+        
+        refreshCatalogo(); 
 
-        List<Prodotto> prodotti = controller.getCatalogoProdotti();
-        for (Prodotto p : prodotti) {
-            gridPanel.add(new ProductPanel(p, prod -> {
-                controller.aggiungiAlCarrello(prod);
-                JOptionPane.showMessageDialog(this, prod.getNome() + " aggiunto al carrello!");
-            }));
-        }
-
-        // Wrapper per lo scroll
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.add(gridPanel, BorderLayout.NORTH);
         wrapper.setBackground(new Color(248, 249, 250));
-
         JScrollPane scrollPane = new JScrollPane(wrapper);
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- 3. Footer con Navigazione ---
+        // --- 3. Footer (Cronologia + Carrello) ---
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
         footer.setBackground(Color.WHITE);
         footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
 
+        // Bottone Cronologia (REINSERITO)
         JButton btnHistory = new JButton("Cronologia Ordini");
         btnHistory.setPreferredSize(new Dimension(160, 40));
+        btnHistory.setFocusPainted(false);
         btnHistory.addActionListener(e -> new CronologiaPage(controller, utente).setVisible(true));
 
+        // Bottone Carrello
         JButton btnCart = new JButton("Vai al Carrello 🛒");
         btnCart.setPreferredSize(new Dimension(160, 40));
         btnCart.setBackground(new Color(46, 204, 113));
         btnCart.setForeground(Color.WHITE);
         btnCart.setFont(new Font("Arial", Font.BOLD, 13));
+        btnCart.setFocusPainted(false);
         btnCart.addActionListener(e -> new CarrelloPage(controller, utente).setVisible(true));
 
-        footer.add(btnHistory);
-        footer.add(btnCart);
+        footer.add(btnHistory); // Aggiunto al pannello
+        footer.add(btnCart);    // Aggiunto al pannello
         add(footer, BorderLayout.SOUTH);
 
         setLocationRelativeTo(null);
+    }
+
+    // Metodo helper per aggiornare la griglia
+    private void refreshCatalogo() {
+        gridPanel.removeAll();
+        List<Prodotto> prodotti = controller.getCatalogoProdotti();
+        for (Prodotto p : prodotti) {
+            gridPanel.add(new ProductPanel(p, prod -> {
+                controller.aggiungiAlCarrello(prod);
+                JOptionPane.showMessageDialog(this, "Aggiunto al carrello!");
+            }));
+        }
+        gridPanel.revalidate();
+        gridPanel.repaint();
     }
 }
