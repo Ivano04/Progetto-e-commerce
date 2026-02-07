@@ -19,9 +19,9 @@ public class App {
         // 1. Inizializzazione Database 
         System.out.println("LOG: Avvio applicazione...");
 
-        // --- PERSISTENZA ATTIVATA ---
+        // PERSISTENZA ATTIVATA
         // Ho commentato queste righe per evitare che il DB venga resettato ad ogni avvio.
-        // Se in futuro vorrai pulire tutto, ti basterà togliere i commenti e riavviare una volta.
+        // Se in futuro si vorrà ripulire tutto, ci basterà togliere i commenti e riavviare una volta.
         
         // DatabaseManager.executeSqlScript("/sql/schema.sql");
         // DatabaseManager.executeSqlScript("/sql/default.sql");

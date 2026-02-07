@@ -179,6 +179,9 @@ public class AcquistoController implements Subject {
     // =========================================================
 
     public void aggiungiNuovoProdotto(String id, String nome, double prezzo) {
+        if (esisteProdotto(id)) {
+            throw new IllegalArgumentException("Errore: L'ID " + id + " è già presente nel catalogo.");
+        }
         Prodotto p = new Prodotto(id, nome, prezzo);
         prodottoDAO.save(p);
     }
@@ -186,4 +189,9 @@ public class AcquistoController implements Subject {
     public void rimuoviProdotto(String id) {
         prodottoDAO.delete(id);
     }
+
+    public boolean esisteProdotto(String id) {
+        return prodottoDAO.getProdottoById(id) != null;
+    }
+
 }

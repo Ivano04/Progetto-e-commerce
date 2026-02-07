@@ -77,18 +77,45 @@ public class HomePage extends JFrame {
             btnAddProd.setForeground(Color.WHITE);
             btnAddProd.setFocusPainted(false);
             btnAddProd.addActionListener(e -> {
-                String id = JOptionPane.showInputDialog(this, "ID Prodotto (es. P09):");
-                String nome = JOptionPane.showInputDialog(this, "Nome Prodotto:");
-                String prezzoStr = JOptionPane.showInputDialog(this, "Prezzo:");
+                String id = null;
                 
-                if (id != null && nome != null && prezzoStr != null) {
-                    try {
-                        controller.aggiungiNuovoProdotto(id, nome, Double.parseDouble(prezzoStr));
-                        refreshCatalogo(); 
-                        JOptionPane.showMessageDialog(this, "Prodotto aggiunto!");
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Dati non validi.");
+                // 1. Ciclo per richiedere l'ID finché non è valido (univoco)
+                while (true) {
+                    id = JOptionPane.showInputDialog(this, "Inserisci ID Prodotto (es. P09):");
+                    
+                    if (id == null) return; // L'utente ha premuto Annulla
+                    if (id.trim().isEmpty()) continue; // ID vuoto, richiedi
+                    
+                    // Controllo se esiste già usando il nuovo metodo del controller
+                    if (controller.esisteProdotto(id)) {
+                        JOptionPane.showMessageDialog(this, 
+                            "L'ID '" + id + "' è già esistente!\nInseriscine uno nuovo.", 
+                            "Errore ID Duplicato", 
+                            JOptionPane.ERROR_MESSAGE);
+                        // Il ciclo while ricomincia e richiede l'ID
+                    } else {
+                        break; // ID valido e libero, esco dal ciclo
                     }
+                }
+
+                // 2. Se siamo qui, l'ID è valido. Chiedo il resto dei dati.
+                String nome = JOptionPane.showInputDialog(this, "Nome Prodotto:");
+                if (nome == null) return; 
+
+                String prezzoStr = JOptionPane.showInputDialog(this, "Prezzo:");
+                if (prezzoStr == null) return;
+
+                try {
+                    controller.aggiungiNuovoProdotto(id, nome, Double.parseDouble(prezzoStr));
+                    refreshCatalogo(); 
+                    JOptionPane.showMessageDialog(this, "Prodotto aggiunto con successo!");
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "Il prezzo deve essere un numero valido!", "Errore Formato", JOptionPane.ERROR_MESSAGE);
+                } catch (IllegalArgumentException ex) {
+                    // Catch dell'eccezione lanciata dal controller (sicurezza extra)
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Errore generico nell'aggiunta.");
                 }
             });
 
