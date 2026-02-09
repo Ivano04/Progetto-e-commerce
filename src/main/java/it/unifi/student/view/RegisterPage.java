@@ -28,14 +28,14 @@ public class RegisterPage extends JFrame {
     public RegisterPage(AcquistoController controller) {
         this.controller = controller;
 
-        // --- Configurazione Finestra ---
+        // Configurazione Finestra 
         setTitle("Registrazione - UNIFI E-Commerce");
         setSize(450, 600); // Un po' più alta per far stare 3 campi
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new GridBagLayout()); 
         getContentPane().setBackground(new Color(236, 240, 241));
 
-        // --- Card Centrale ---
+        // Card Centrale
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBackground(Color.WHITE);
@@ -44,7 +44,7 @@ public class RegisterPage extends JFrame {
             new EmptyBorder(30, 40, 30, 40)
         ));
 
-        // --- Titoli ---
+        // Titoli
         JLabel lblTitolo = new JLabel("Registrati");
         lblTitolo.setFont(new Font("Arial", Font.BOLD, 28));
         lblTitolo.setForeground(new Color(44, 62, 80));
@@ -54,8 +54,6 @@ public class RegisterPage extends JFrame {
         lblSotto.setForeground(Color.GRAY);
         lblSotto.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblSotto.setBorder(new EmptyBorder(0, 0, 20, 0));
-
-        // --- CAMPI DI INPUT (Ora sono 3) ---
         
         // 1. Nome Utente
         JTextField txtNome = new JTextField();
@@ -72,7 +70,7 @@ public class RegisterPage extends JFrame {
         txtPass.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         txtPass.setBorder(BorderFactory.createTitledBorder("Password"));
 
-        // --- Bottoni ---
+        // Bottoni
         JButton btnConfirm = new JButton("CONFERMA REGISTRAZIONE");
         btnConfirm.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnConfirm.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
@@ -89,11 +87,11 @@ public class RegisterPage extends JFrame {
         btnBack.setForeground(new Color(52, 152, 219)); 
         btnBack.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- Logica ---
+        // Logica
         btnConfirm.addActionListener(e -> {
-            String nome = txtNome.getText();       // Prendo il nome
-            String email = txtEmail.getText();     // Prendo l'email
-            String password = new String(txtPass.getPassword()); // Prendo la password
+            String nome = txtNome.getText();       
+            String email = txtEmail.getText();     
+            String password = new String(txtPass.getPassword()); 
 
             if (nome.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Tutti i campi sono obbligatori!", "Attenzione", JOptionPane.WARNING_MESSAGE);
@@ -113,7 +111,7 @@ public class RegisterPage extends JFrame {
 
         btnBack.addActionListener(e -> this.dispose());
 
-        // --- Assemblaggio ---
+        // Assemblaggio
         card.add(lblTitolo);
         card.add(lblSotto);
         

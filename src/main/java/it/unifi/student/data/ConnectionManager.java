@@ -4,9 +4,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-/**
- * Gestisce la connessione al database PostgreSQL tramite pattern Singleton. 
- */
+
+//Gestisce la connessione al database PostgreSQL tramite pattern Singleton. 
+ 
 public class ConnectionManager {
     private static ConnectionManager instance;
     private Connection connection;

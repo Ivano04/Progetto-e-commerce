@@ -9,6 +9,5 @@ public interface UtenteDAO {
     List<Utente> findAll();
     void deleteUtente(String email);
 
-    // --- MODIFICA QUESTA RIGA ---
     boolean register(String nome, String email, String password);
 }

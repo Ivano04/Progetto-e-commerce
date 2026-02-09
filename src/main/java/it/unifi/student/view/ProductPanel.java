@@ -34,7 +34,6 @@ public class ProductPanel extends JPanel {
         lblId.setFont(new Font("Monospaced", Font.PLAIN, 12)); // Font monospaced per dare l'idea di codice
         lblId.setForeground(Color.GRAY);
         lblId.setAlignmentX(Component.CENTER_ALIGNMENT);
-        // ---------------------------
 
         // PREZZO 
         JLabel lblPrezzo = new JLabel("€" + String.format("%.2f", p.getPrezzo()));
@@ -62,6 +61,6 @@ public class ProductPanel extends JPanel {
         add(btnAdd, BorderLayout.SOUTH);
 
         // Dimensione fissa per la box della griglia
-        setPreferredSize(new Dimension(200, 260)); // Aumentata leggermente l'altezza per far stare l'ID
+        setPreferredSize(new Dimension(200, 260)); 
     }
 }

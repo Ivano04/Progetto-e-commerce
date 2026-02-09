@@ -65,7 +65,6 @@ public class ProdottoDAOImpl implements ProdottoDAO {
         return null;
     }
 
-    // --- NUOVI METODI IMPLEMENTATI ---
 
     @Override
     public void save(Prodotto p) {

@@ -20,20 +20,20 @@ public class CronologiaPage extends JFrame {
         this.controller = controller;
         this.utente = utente;
 
-        // --- Configurazione Finestra ---
+        // Configurazione Finestra 
         setTitle("I Miei Ordini - " + utente.getNome());
         setSize(550, 650);
         setLayout(new BorderLayout());
         getContentPane().setBackground(new Color(245, 245, 245));
 
-        // --- 1. Header (NORD) ---
+        // 1. Header 
         JLabel titolo = new JLabel("Storico Acquisti", SwingConstants.CENTER);
         titolo.setFont(new Font("Arial", Font.BOLD, 22));
         titolo.setForeground(new Color(44, 62, 80));
         titolo.setBorder(new EmptyBorder(25, 0, 20, 0));
         add(titolo, BorderLayout.NORTH);
 
-        // --- 2. Pannello Centrale con Scroll ---
+        // 2. Pannello Centrale con Scroll
         listaContenitore = new JPanel();
         listaContenitore.setLayout(new BoxLayout(listaContenitore, BoxLayout.Y_AXIS));
         listaContenitore.setBackground(new Color(245, 245, 245));
@@ -46,7 +46,7 @@ public class CronologiaPage extends JFrame {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16); // Scroll più fluido
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- 3. Bottone di Chiusura (SUD) ---
+        // 3. Bottone di Chiusura 
         JPanel panelSud = new JPanel(new FlowLayout(FlowLayout.CENTER));
         panelSud.setBackground(Color.WHITE);
         panelSud.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(210, 210, 210)));
@@ -73,7 +73,7 @@ public class CronologiaPage extends JFrame {
             listaContenitore.add(vuoto);
         } else {
             for (Ordine o : ordini) {
-                // --- Creazione Card Ordine ---
+                // Creazione Card Ordine
                 JPanel orderCard = new JPanel();
                 orderCard.setLayout(new BorderLayout(10, 10));
                 orderCard.setBackground(Color.WHITE);

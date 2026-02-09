@@ -30,14 +30,14 @@ public class LoginPage extends JFrame {
     public LoginPage(AcquistoController controller) {
         this.controller = controller;
 
-        // --- Configurazione Finestra ---
+        // Configurazione Finestra
         setTitle("Accesso - UNIFI E-Commerce");
         setSize(450, 550); // Ho aumentato leggermente l'altezza per farci stare i due tasti
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridBagLayout()); 
         getContentPane().setBackground(new Color(236, 240, 241)); 
 
-        // --- 1. Creazione della "Login Card" ---
+        // 1. Creazione della "Login Card" 
         JPanel card = new JPanel();
         card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
         card.setBackground(Color.WHITE);
@@ -46,7 +46,7 @@ public class LoginPage extends JFrame {
             new EmptyBorder(30, 40, 30, 40)
         ));
 
-        // --- 2. Elementi Grafici ---
+        //  2. Elementi Grafici 
         JLabel lblTitolo = new JLabel("Login");
         lblTitolo.setFont(new Font("Arial", Font.BOLD, 28));
         lblTitolo.setForeground(new Color(44, 62, 80));
@@ -65,7 +65,7 @@ public class LoginPage extends JFrame {
         txtPass.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         txtPass.setBorder(BorderFactory.createTitledBorder("Password"));
 
-        // --- Bottone ACCEDI (Blu) ---
+        // Bottone ACCEDI
         JButton btnLogin = new JButton("ACCEDI");
         btnLogin.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnLogin.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
@@ -75,7 +75,7 @@ public class LoginPage extends JFrame {
         btnLogin.setFocusPainted(false);
         btnLogin.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- Bottone REGISTRATI (Verde) --- [PARTE NUOVA]
+        // Bottone REGISTRATI 
         JButton btnRegister = new JButton("REGISTRATI");
         btnRegister.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnRegister.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
@@ -85,7 +85,7 @@ public class LoginPage extends JFrame {
         btnRegister.setFocusPainted(false);
         btnRegister.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // --- 3. Logica dei Bottoni ---
+        // 3. Logica dei Bottoni
         
         // Logica Login
         btnLogin.addActionListener(e -> {
@@ -106,13 +106,13 @@ public class LoginPage extends JFrame {
             }
         });
 
-        // Logica Registrazione (Apre la tua nuova pagina)
+        // Logica Registrazione 
         btnRegister.addActionListener(e -> {
             new RegisterPage(controller).setVisible(true);
             // Non chiudiamo la login (this.dispose()) così l'utente può tornare qui dopo la registrazione
         });
 
-        // --- 4. Assemblaggio Card (QUESTA PARTE TI MANCAVA) ---
+        //4. Assemblaggio Card 
         card.add(lblTitolo);
         card.add(lblSotto);
         card.add(txtEmail);
@@ -125,7 +125,7 @@ public class LoginPage extends JFrame {
         
         // Aggiungo uno spazietto e poi il bottone REGISTRAZIONE
         card.add(Box.createRigidArea(new Dimension(0, 10))); 
-        card.add(btnRegister); // <--- ECCOLO! Senza questo, il tasto non appare.
+        card.add(btnRegister); 
 
         add(card);
         setLocationRelativeTo(null);

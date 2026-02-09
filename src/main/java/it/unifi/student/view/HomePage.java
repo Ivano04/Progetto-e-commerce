@@ -31,14 +31,14 @@ public class HomePage extends JFrame {
         this.controller = controller;
         this.utente = utente;
 
-        // --- Configurazione Finestra ---
+        // Configurazione Finestra
         setTitle("UNIFI Shop - Catalogo");
         setSize(1000, 700); 
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         getContentPane().setBackground(new Color(248, 249, 250));
 
-        // --- 1. Header (Titolo + Pannello Admin) ---
+        // 1. Header (Titolo + Pannello Admin) 
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(44, 62, 80));
         header.setBorder(new EmptyBorder(20, 30, 20, 30));
@@ -145,7 +145,7 @@ public class HomePage extends JFrame {
         
         add(header, BorderLayout.NORTH);
 
-        // --- 2. Griglia Prodotti ---
+        // 2. Griglia Prodotti
         gridPanel = new JPanel(new GridLayout(0, 4, 20, 20));
         gridPanel.setBackground(new Color(248, 249, 250));
         gridPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
@@ -160,7 +160,7 @@ public class HomePage extends JFrame {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- 3. Footer (Cronologia + Carrello) ---
+        //  3. Footer (Cronologia + Carrello)
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
         footer.setBackground(Color.WHITE);
         footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));

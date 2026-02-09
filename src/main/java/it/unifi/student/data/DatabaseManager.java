@@ -30,7 +30,6 @@ public class DatabaseManager {
             String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             
             // Dividiamo lo script in singoli comandi separati dal punto e virgola
-            // Il regex previene problemi con spazi bianchi o ritorni a capo
             String[] commands = content.split(";");
 
             try (Connection conn = ConnectionManager.getInstance().getConnection();

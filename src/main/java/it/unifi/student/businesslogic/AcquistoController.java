@@ -27,9 +27,9 @@ public class AcquistoController implements Subject {
 
     /**
      * Costruttore con Dependency Injection.
-     * @param prodottoDAO DAO per l'accesso al catalogo prodotti.
-     * @param ordineDAO DAO per la persistenza degli ordini.
-     * @param utenteDAO DAO per la gestione utenti.
+     *  prodottoDAO DAO per l'accesso al catalogo prodotti.
+     *  ordineDAO DAO per la persistenza degli ordini.
+     *  utenteDAO DAO per la gestione utenti.
      */
     public AcquistoController(ProdottoDAO prodottoDAO, OrdineDAO ordineDAO, UtenteDAO utenteDAO) {
         this.carrelloAttuale = new ArrayList<>();
@@ -59,7 +59,7 @@ public class AcquistoController implements Subject {
         }
     }
 
-    // --- Metodi di Business Logic ---
+    //Metodi della Business Logic 
 
     public void aggiungiPerId(String id) {
         Prodotto p = prodottoDAO.getProdottoById(id);
@@ -94,9 +94,9 @@ public class AcquistoController implements Subject {
         return nuovoOrdine;
     }
 
-    /**
-     * Cancella un ordine esistente e notifica gli osservatori per aggiornare log e GUI.
-     */
+    
+    // Cancella un ordine esistente e notifica gli osservatori per aggiornare log e GUI.
+     
     public void cancellaOrdine(int id) {
         // Recupero l'ordine per poterlo passare nella notifica prima di rimuoverlo
         Ordine daCancellare = ordineDAO.findAll().stream()
@@ -111,7 +111,7 @@ public class AcquistoController implements Subject {
         }
     }
 
-    // --- Metodi Helper ---
+    // Metodi Helper
 
     public List<Prodotto> getCarrello() {
         return new ArrayList<>(carrelloAttuale);
@@ -137,7 +137,7 @@ public class AcquistoController implements Subject {
             .toList();
     }
 
-    // --- GESTIONE UTENTI (Login e Registrazione) ---
+    //GESTIONE UTENTI (Login e Registrazione)
 
     public Utente autentica(String email, String password) throws CredenzialiNonValideException {
         Utente u = utenteDAO.findByEmailAndPassword(email, password);
@@ -147,9 +147,9 @@ public class AcquistoController implements Subject {
         return u;
     }
 
-    /**
-     * Metodo aggiornato per gestire 3 campi: Nome, Email, Password.
-     */
+    
+    // Metodo aggiornato per gestire 3 campi: Nome, Email, Password.
+     
     public boolean registraUtente(String nome, String email, String password) {
         // Controllo che nessuno dei tre campi sia vuoto
         if (nome == null || nome.isEmpty() || 
@@ -174,10 +174,8 @@ public class AcquistoController implements Subject {
         utenteDAO.deleteUtente(emailDaCancellare);
     }
 
-    // =========================================================
     // NUOVI METODI AGGIUNTI PER LA GESTIONE PRODOTTI ADMIN
-    // =========================================================
-
+    
     public void aggiungiNuovoProdotto(String id, String nome, double prezzo) {
         if (esisteProdotto(id)) {
             throw new IllegalArgumentException("Errore: L'ID " + id + " è già presente nel catalogo.");
