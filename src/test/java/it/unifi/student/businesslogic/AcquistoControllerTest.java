@@ -18,6 +18,7 @@ import it.unifi.student.domain.Ordine;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
 
+
 /**
  * Test di unità per AcquistoController.
  */
@@ -181,5 +182,44 @@ public class AcquistoControllerTest {
         assertThrows(CredenzialiNonValideException.class, () -> {
             controller.autentica(emailErrata, passwordErrata);
         }, "Il controller doveva lanciare CredenzialiNonValideException");
+    }
+
+    @Test
+    public void testStrategy_CambioStrategiaRuntime() {
+        System.out.println("--- TEST STRATEGY PATTERN ---");
+
+        // 1. SETUP: Creo un prodotto da 100€ e un utente
+        Prodotto p = new Prodotto("LUX", "Prodotto Lusso", 100.0);
+        pDao.save(p);
+        
+        Utente u = new Utente("strategy@test.it", "StrategyUser", "pwd", false);
+        uDao.register(u.getNome(), u.getEmail(), "pwd");
+
+        // 2. Aggiungo al carrello
+        controller.aggiungiAlCarrello(p);
+
+        // 3. VERIFICA 1: Senza strategia (Prezzo Pieno)
+        // Di default il controller usa NessunoScontoStrategy
+        double totalePieno = controller.getTotaleCarrello();
+        System.out.println("Totale senza sconto: " + totalePieno);
+        assertEquals(100.0, totalePieno, "Il totale iniziale deve essere prezzo pieno");
+
+        // 4. AZIONE: Cambio strategia a Runtime (es. Sconto 20%)
+        // Qui simuli l'utente che inserisce un codice sconto
+        controller.setScontoStrategy(new ScontoPercentualeStrategy(20));
+        System.out.println("Strategia impostata: Sconto 20%");
+
+        // 5. VERIFICA 2: Il totale deve essere aggiornato immediatamente
+        double totaleScontato = controller.getTotaleCarrello();
+        System.out.println("Totale scontato: " + totaleScontato);
+        assertEquals(80.0, totaleScontato, "Il totale deve essere ridotto del 20%");
+
+        // 6. VERIFICA 3: Finalizzazione Acquisto
+        // L'ordine salvato nel DB deve avere il prezzo scontato
+        Ordine ordine = controller.finalizzaAcquisto(u);
+        assertNotNull(ordine);
+        assertEquals(80.0, ordine.getTotale(), "L'ordine salvato deve mantenere lo sconto");
+        
+        System.out.println("--- TEST PASSATO CORRETTAMENTE ---");
     }
 }
