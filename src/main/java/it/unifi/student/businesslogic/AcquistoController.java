@@ -25,6 +25,9 @@ public class AcquistoController implements Subject {
     // Lista degli osservatori registrati
     private List<Observer> observers = new ArrayList<>();
 
+    //Campo per la Strategy
+    private ScontoStrategy scontoStrategy;
+
     /**
      * Costruttore con Dependency Injection.
      *  prodottoDAO DAO per l'accesso al catalogo prodotti.
@@ -36,6 +39,7 @@ public class AcquistoController implements Subject {
         this.prodottoDAO = prodottoDAO;
         this.ordineDAO = ordineDAO;
         this.utenteDAO = utenteDAO;
+        this.scontoStrategy = new NessunoScontoStrategy();
     }
 
     //Implementazione dell'interfaccia Subject
@@ -70,6 +74,13 @@ public class AcquistoController implements Subject {
         if (p != null) carrelloAttuale.add(p);
     }
 
+    public void setScontoStrategy(ScontoStrategy scontoStrategy) {
+        if (scontoStrategy == null) {
+            throw new IllegalArgumentException("La strategia non può essere null");
+        }
+        this.scontoStrategy = scontoStrategy;
+    }
+
     // Finalizza l'acquisto creando un ordine e notificando gli osservatori.
     public Ordine finalizzaAcquisto(Utente utente) {
         if (carrelloAttuale.isEmpty()) return null;
@@ -79,8 +90,8 @@ public class AcquistoController implements Subject {
         nuovoOrdine.setProdotti(new ArrayList<>(carrelloAttuale));
         nuovoOrdine.setStato("PAGATO");
         
-        double totale = carrelloAttuale.stream().mapToDouble(Prodotto::getPrezzo).sum();
-        nuovoOrdine.setTotale(totale);
+        double totaleCalcolato = scontoStrategy.calcolaTotale(carrelloAttuale);
+        nuovoOrdine.setTotale(totaleCalcolato);
 
         // Salvataggio nel database
         ordineDAO.save(nuovoOrdine);
@@ -88,6 +99,7 @@ public class AcquistoController implements Subject {
         // Reset del carrello
         carrelloAttuale.clear();
         
+        this.scontoStrategy = new NessunoScontoStrategy();
         // NOTIFICA EVENTO: Passaggio chiave per l'estensibilità del sistema
         notifyObservers(TipoEvento.ACQUISTO_COMPLETATO, nuovoOrdine);
         
@@ -122,9 +134,7 @@ public class AcquistoController implements Subject {
     }
 
     public double getTotaleCarrello() {
-        return carrelloAttuale.stream()
-                .mapToDouble(Prodotto::getPrezzo)
-                .sum();
+        return scontoStrategy.calcolaTotale(carrelloAttuale);
     }
 
     public void rimuoviDalCarrello(Prodotto p) {
