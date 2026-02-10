@@ -23,8 +23,8 @@ public class App {
         // Ho commentato queste righe per evitare che il DB venga resettato ad ogni avvio.
         // Se in futuro si vorrà ripulire tutto, ci basterà togliere i commenti e riavviare una volta.
         
-        // DatabaseManager.executeSqlScript("/sql/schema.sql");
-        // DatabaseManager.executeSqlScript("/sql/default.sql");
+        //DatabaseManager.executeSqlScript("/sql/schema.sql");
+        //DatabaseManager.executeSqlScript("/sql/default.sql");
 
         // 2. Inizializzazione dei DAO (Pattern Singleton e JDBC)
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();        
