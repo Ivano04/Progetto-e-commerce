@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import it.unifi.student.businesslogic.AcquistoController;
@@ -48,7 +49,7 @@ public class HomePage extends JFrame {
         titolo.setForeground(Color.WHITE);
         header.add(titolo, BorderLayout.WEST);
 
-        // Sezione Admin
+        // --- SEZIONE ADMIN ---
         if (utente.isAdmin()) {
             JPanel adminPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             adminPanel.setOpaque(false);
@@ -86,13 +87,12 @@ public class HomePage extends JFrame {
                     if (id == null) return; // L'utente ha premuto Annulla
                     if (id.trim().isEmpty()) continue; // ID vuoto, richiedi
                     
-                    // Controllo se esiste già usando il nuovo metodo del controller
+                    // Controllo se esiste già
                     if (controller.esisteProdotto(id)) {
                         JOptionPane.showMessageDialog(this, 
                             "L'ID '" + id + "' è già esistente!\nInseriscine uno nuovo.", 
                             "Errore ID Duplicato", 
                             JOptionPane.ERROR_MESSAGE);
-                        // Il ciclo while ricomincia e richiede l'ID
                     } else {
                         break; // ID valido e libero, esco dal ciclo
                     }
@@ -112,7 +112,6 @@ public class HomePage extends JFrame {
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(this, "Il prezzo deve essere un numero valido!", "Errore Formato", JOptionPane.ERROR_MESSAGE);
                 } catch (IllegalArgumentException ex) {
-                    // Catch dell'eccezione lanciata dal controller (sicurezza extra)
                     JOptionPane.showMessageDialog(this, ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(this, "Errore generico nell'aggiunta.");
@@ -121,7 +120,7 @@ public class HomePage extends JFrame {
 
             // Bottone Rimuovi Prodotto
             JButton btnRemProd = new JButton("🗑️ RIMUOVI PROD.");
-            btnRemProd.setBackground(new Color(230, 126, 34));
+            btnRemProd.setBackground(new Color(230, 126, 34)); // Arancione
             btnRemProd.setForeground(Color.WHITE);
             btnRemProd.setFocusPainted(false);
             btnRemProd.addActionListener(e -> {
@@ -137,9 +136,50 @@ public class HomePage extends JFrame {
                 }
             });
 
+            // --- NUOVO BOTTONE: CREA COUPON ---
+            JButton btnCreaCoupon = new JButton("🎫 CREA COUPON");
+            btnCreaCoupon.setBackground(new Color(155, 89, 182)); // Viola
+            btnCreaCoupon.setForeground(Color.WHITE);
+            btnCreaCoupon.setFocusPainted(false);
+            btnCreaCoupon.addActionListener(e -> {
+                // Pannello per inserire i due dati
+                JPanel panel = new JPanel(new GridLayout(0, 1));
+                JTextField txtCodice = new JTextField();
+                JTextField txtSconto = new JTextField();
+                
+                panel.add(new JLabel("Codice Coupon (es. SCONTO50):"));
+                panel.add(txtCodice);
+                panel.add(new JLabel("Percentuale Sconto (1-100):"));
+                panel.add(txtSconto);
+
+                int result = JOptionPane.showConfirmDialog(this, panel, "Crea Nuovo Coupon",
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+                if (result == JOptionPane.OK_OPTION) {
+                    try {
+                        String codice = txtCodice.getText().trim();
+                        int sconto = Integer.parseInt(txtSconto.getText().trim());
+                        
+                        // Chiamo il controller
+                        controller.creaNuovoCoupon(codice, sconto);
+                        JOptionPane.showMessageDialog(this, "Coupon " + codice.toUpperCase() + " creato con successo!");
+                        
+                    } catch (NumberFormatException ex) {
+                        JOptionPane.showMessageDialog(this, "Inserisci un numero intero valido per lo sconto!", "Errore", JOptionPane.ERROR_MESSAGE);
+                    } catch (IllegalArgumentException ex) {
+                        JOptionPane.showMessageDialog(this, ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, "Errore generico creazione coupon: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            });
+
+            // Aggiunta bottoni al pannello Admin
             adminPanel.add(btnAddProd);
             adminPanel.add(btnRemProd);
+            adminPanel.add(btnCreaCoupon); // Aggiungo il nuovo bottone qui
             adminPanel.add(btnAdmin);
+            
             header.add(adminPanel, BorderLayout.EAST);
         }
         
@@ -165,7 +205,7 @@ public class HomePage extends JFrame {
         footer.setBackground(Color.WHITE);
         footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
 
-        // Bottone Cronologia (REINSERITO)
+        // Bottone Cronologia
         JButton btnHistory = new JButton("Cronologia Ordini");
         btnHistory.setPreferredSize(new Dimension(160, 40));
         btnHistory.setFocusPainted(false);
@@ -180,8 +220,8 @@ public class HomePage extends JFrame {
         btnCart.setFocusPainted(false);
         btnCart.addActionListener(e -> new CarrelloPage(controller, utente).setVisible(true));
 
-        footer.add(btnHistory); // Aggiunto al pannello
-        footer.add(btnCart);    // Aggiunto al pannello
+        footer.add(btnHistory); 
+        footer.add(btnCart);    
         add(footer, BorderLayout.SOUTH);
 
         setLocationRelativeTo(null);

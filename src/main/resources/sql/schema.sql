@@ -9,7 +9,7 @@ CREATE TABLE Utente (
     email VARCHAR(100) PRIMARY KEY,
     nome VARCHAR(100),
     password VARCHAR(100),
-    is_admin BOOLEAN DEFAULT FALSE -- <--- NOVITÀ: distingue admin da utenti normali
+    is_admin BOOLEAN DEFAULT FALSE 
 );
 
 --Tabella Prodotto (Ora include immagine per le foto)
@@ -32,4 +32,9 @@ CREATE TABLE Ordine_Prodotti (
     id_ordine INT REFERENCES Ordine(id) ON DELETE CASCADE,
     id_prodotto VARCHAR(50) REFERENCES Prodotto(id),
     PRIMARY KEY (id_ordine, id_prodotto)
+);
+
+CREATE TABLE IF NOT EXISTS Coupon (
+    codice VARCHAR(50) PRIMARY KEY,
+    percentuale_sconto INT NOT NULL CHECK (percentuale_sconto > 0 AND percentuale_sconto <= 100)
 );

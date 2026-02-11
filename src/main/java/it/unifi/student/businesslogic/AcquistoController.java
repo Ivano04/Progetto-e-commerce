@@ -9,6 +9,8 @@ import it.unifi.student.data.UtenteDAO;
 import it.unifi.student.domain.Ordine;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
+import it.unifi.student.data.CouponDAO;
+import it.unifi.student.domain.Coupon;
 
 /**
  * Controller per la gestione del processo di acquisto.
@@ -27,6 +29,7 @@ public class AcquistoController implements Subject {
 
     //Campo per la Strategy
     private ScontoStrategy scontoStrategy;
+    private CouponDAO couponDAO;
 
     /**
      * Costruttore con Dependency Injection.
@@ -34,11 +37,12 @@ public class AcquistoController implements Subject {
      *  ordineDAO DAO per la persistenza degli ordini.
      *  utenteDAO DAO per la gestione utenti.
      */
-    public AcquistoController(ProdottoDAO prodottoDAO, OrdineDAO ordineDAO, UtenteDAO utenteDAO) {
+    public AcquistoController(ProdottoDAO prodottoDAO, OrdineDAO ordineDAO, UtenteDAO utenteDAO, CouponDAO couponDAO) {
         this.carrelloAttuale = new ArrayList<>();
         this.prodottoDAO = prodottoDAO;
         this.ordineDAO = ordineDAO;
         this.utenteDAO = utenteDAO;
+        this.couponDAO = couponDAO;
         this.scontoStrategy = new NessunoScontoStrategy();
     }
 
@@ -200,6 +204,32 @@ public class AcquistoController implements Subject {
 
     public boolean esisteProdotto(String id) {
         return prodottoDAO.getProdottoById(id) != null;
+    }
+    public void creaNuovoCoupon(String codice, int percentuale) {
+        if (percentuale <= 0 || percentuale > 100) {
+            throw new IllegalArgumentException("La percentuale deve essere tra 1 e 100.");
+        }
+        if (codice == null || codice.trim().isEmpty()) {
+             throw new IllegalArgumentException("Il codice non può essere vuoto.");
+        }
+        // Verifica se esiste già
+        if (couponDAO.findByCodice(codice.toUpperCase()) != null) {
+            throw new IllegalArgumentException("Questo codice coupon esiste già!");
+        }
+
+        Coupon c = new Coupon(codice.toUpperCase(), percentuale);
+        couponDAO.save(c);
+    }
+
+    // Metodo per il Cliente: Verifica e applica il coupon
+    public boolean applicaCoupon(String codiceInput) {
+        Coupon c = couponDAO.findByCodice(codiceInput.toUpperCase());
+        if (c != null) {
+            // Se esiste, cambio la strategia a runtime usando la percentuale del DB
+            this.setScontoStrategy(new ScontoPercentualeStrategy(c.getPercentualeSconto()));
+            return true;
+        }
+        return false;
     }
 
 }

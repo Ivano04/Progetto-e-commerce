@@ -118,26 +118,31 @@ public class CarrelloPage extends JFrame {
 
     // --- METODI DI SUPPORTO ---
 
-    private void gestisciCoupon() {
-        String codice = txtCoupon.getText().trim().toUpperCase();
+        private void gestisciCoupon() {
+        String codice = txtCoupon.getText().trim();
         
-        if (codice.equals("ESTATE20")) {
-            // Applica sconto 20%
-            controller.setScontoStrategy(new ScontoPercentualeStrategy(20));
-            JOptionPane.showMessageDialog(this, "Coupon 'ESTATE20' applicato! Sconto del 20%.");
-            btnApplicaCoupon.setEnabled(false); // Disabilita per evitare doppi click
-            txtCoupon.setEditable(false);
-        } else if (codice.isEmpty()) {
+        if (codice.isEmpty()) {
             // Reset strategia
             controller.setScontoStrategy(new NessunoScontoStrategy());
             JOptionPane.showMessageDialog(this, "Nessun coupon inserito. Prezzo pieno ripristinato.");
-             btnApplicaCoupon.setEnabled(true);
-             txtCoupon.setEditable(true);
-        } else {
-            JOptionPane.showMessageDialog(this, "Codice non valido!", "Errore", JOptionPane.ERROR_MESSAGE);
-            // Non resetto la strategia qui, lascio quella che c'era (o default)
+            btnApplicaCoupon.setEnabled(true);
+            txtCoupon.setEditable(true);
+            updateTotaleDisplay();
+            return;
         }
-        updateTotaleDisplay(); // Ricalcola e aggiorna la Label
+
+        // NUOVA LOGICA: Chiedo al controller di verificare e applicare
+        boolean applicato = controller.applicaCoupon(codice);
+
+        if (applicato) {
+            JOptionPane.showMessageDialog(this, "Coupon '" + codice.toUpperCase() + "' applicato con successo!");
+            btnApplicaCoupon.setEnabled(false); // Disabilito per evitare doppi click
+            txtCoupon.setEditable(false);
+            updateTotaleDisplay(); // Ricalcolo il totale grafico
+        } else {
+            JOptionPane.showMessageDialog(this, "Codice coupon non valido o scaduto.", "Errore", JOptionPane.ERROR_MESSAGE);
+            // Lascio l'utente riprovare
+        }
     }
 
     private void gestisciAcquisto() {

@@ -5,6 +5,8 @@ import javax.swing.SwingUtilities;
 import it.unifi.student.businesslogic.AcquistoController;
 import it.unifi.student.businesslogic.EmailService;
 import it.unifi.student.businesslogic.LogService;
+import it.unifi.student.data.CouponDAO;
+import it.unifi.student.data.CouponDAOImpl;
 import it.unifi.student.data.DatabaseManager; 
 import it.unifi.student.data.OrdineDAO;
 import it.unifi.student.data.OrdineDAOImpl;
@@ -20,19 +22,20 @@ public class App {
         System.out.println("LOG: Avvio applicazione...");
 
         // PERSISTENZA ATTIVATA
-        // Ho commentato queste righe per evitare che il DB venga resettato ad ogni avvio.
-        // Se in futuro si vorrà ripulire tutto, ci basterà togliere i commenti e riavviare una volta.
-        
+        // Decommentare queste righe se si vuole resettare il DB o aggiornare lo schema
         //DatabaseManager.executeSqlScript("/sql/schema.sql");
-        //DatabaseManager.executeSqlScript("/sql/default.sql");
+        // DatabaseManager.executeSqlScript("/sql/default.sql");
 
         // 2. Inizializzazione dei DAO (Pattern Singleton e JDBC)
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();        
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
         UtenteDAO uDao = UtenteDAOImpl.getInstance();
+        // NUOVO: Inizializzazione del DAO per i Coupon
+        CouponDAO cDao = CouponDAOImpl.getInstance(); 
 
         // 3. Creazione del Controller con Dependency Injection
-        AcquistoController controller = new AcquistoController(pDao, oDao, uDao);
+        // Aggiornato per accettare anche il CouponDAO
+        AcquistoController controller = new AcquistoController(pDao, oDao, uDao, cDao);
 
         // 4. Configurazione Pattern Observer (Event-Driven)
         controller.attach(new EmailService());
