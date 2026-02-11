@@ -130,4 +130,5 @@ public class OrdineDAOImpl implements OrdineDAO {
         // Implementazione vuota o di reset se necessaria
         // DatabaseManager.executeSqlScript("/sql/schema.sql");
     }
+    
 }

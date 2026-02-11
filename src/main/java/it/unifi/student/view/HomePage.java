@@ -174,11 +174,47 @@ public class HomePage extends JFrame {
                 }
             });
 
+            JButton btnRemCoupon = new JButton("🗑️ RIMUOVI COUPON");
+            btnRemCoupon.setBackground(new Color(192, 57, 43)); // Rosso scuro
+            btnRemCoupon.setForeground(Color.WHITE);
+            btnRemCoupon.setFocusPainted(false);
+            btnRemCoupon.addActionListener(e -> {
+                // 1. Recupero la lista dei codici dal DB tramite Controller
+                List<String> listaCodici = controller.getListaCodiciCoupon();
+                
+                if (listaCodici.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Non ci sono coupon attivi da rimuovere.", "Info", JOptionPane.INFORMATION_MESSAGE);
+                    return;
+                }
+
+                // 2. Converto in array per il popup
+                String[] coupons = listaCodici.toArray(new String[0]);
+                
+                // 3. Mostro il popup di selezione
+                String selezione = (String) JOptionPane.showInputDialog(
+                    this, 
+                    "Seleziona il coupon da eliminare:", 
+                    "Rimuovi Coupon", 
+                    JOptionPane.WARNING_MESSAGE, 
+                    null, 
+                    coupons, 
+                    null
+                );
+                
+                // 4. Se l'admin ha selezionato qualcosa e premuto OK
+                if (selezione != null) {
+                    controller.rimuoviCoupon(selezione);
+                    JOptionPane.showMessageDialog(this, "Coupon " + selezione + " eliminato definitivamente.");
+                }
+            });
+
             // Aggiunta bottoni al pannello Admin
             adminPanel.add(btnAddProd);
             adminPanel.add(btnRemProd);
-            adminPanel.add(btnCreaCoupon); // Aggiungo il nuovo bottone qui
+            adminPanel.add(btnCreaCoupon); 
+            adminPanel.add(btnRemCoupon);
             adminPanel.add(btnAdmin);
+
             
             header.add(adminPanel, BorderLayout.EAST);
         }

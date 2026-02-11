@@ -232,4 +232,15 @@ public class AcquistoController implements Subject {
         return false;
     }
 
+    public List<String> getListaCodiciCoupon() {
+        return couponDAO.getAllCodici();
+    }
+
+    public void rimuoviCoupon(String codice) {
+        if (codice != null && !codice.isEmpty()) {
+            couponDAO.delete(codice);
+            // Per semplicità, resettiamo la strategia se corrisponde
+        }
+    }
+
 }
