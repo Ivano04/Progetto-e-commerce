@@ -2,6 +2,7 @@ package it.unifi.student.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -19,8 +20,8 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import it.unifi.student.businesslogic.AcquistoController;
-import it.unifi.student.businesslogic.CatalogoController; // NUOVO IMPORT
-import it.unifi.student.businesslogic.UtenteController; // Opzionale, se vuoi gestire utenti qui
+import it.unifi.student.businesslogic.CatalogoController;
+import it.unifi.student.businesslogic.UtenteController;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
 
@@ -28,12 +29,10 @@ public class HomePage extends JFrame {
 
     private AcquistoController acquistoController;
     private CatalogoController catalogoController;
-    private UtenteController utenteController; // Aggiungiamo anche questo per la gestione utenti admin
+    private UtenteController utenteController;
     private Utente utente;
     private JPanel gridPanel; 
 
-    // Costruttore aggiornato: prende TUTTI e 3 i controller
-    // (Nota: UtenteController serve se vuoi mantenere la funzionalità "Rimuovi Utenti" funzionante)
     public HomePage(AcquistoController acquistoController, CatalogoController catalogoController, UtenteController utenteController, Utente utente) {
         this.acquistoController = acquistoController;
         this.catalogoController = catalogoController;
@@ -47,29 +46,31 @@ public class HomePage extends JFrame {
         setLayout(new BorderLayout());
         getContentPane().setBackground(new Color(248, 249, 250));
 
-        // 1. Header (Titolo + Pannello Admin) 
+        // --- 1. HEADER (Alleggerito) ---
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(new Color(44, 62, 80));
         header.setBorder(new EmptyBorder(20, 30, 20, 30));
 
+        // Parte Sinistra: Benvenuto
         JLabel titolo = new JLabel("Benvenuto, " + utente.getNome());
         titolo.setFont(new Font("Arial", Font.BOLD, 24));
         titolo.setForeground(Color.WHITE);
         header.add(titolo, BorderLayout.WEST);
 
-        // --- SEZIONE ADMIN ---
+        // Parte Destra: Pannello Admin (SOLO SE ADMIN)
         if (utente.isAdmin()) {
             JPanel adminPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             adminPanel.setOpaque(false);
 
-            // Bottone Gestione Utenti (Usa UtenteController)
+            // Bottone Gestione Utenti
             JButton btnAdmin = new JButton("🗑️ UTENTI");
             btnAdmin.setBackground(Color.RED);
             btnAdmin.setForeground(Color.WHITE);
             btnAdmin.setFocusPainted(false);
             btnAdmin.addActionListener(e -> {
-                // Ora chiamo UtenteController
                 List<Utente> listaUtenti = utenteController.getListaUtenti();
+                if (listaUtenti.isEmpty()) return;
+                
                 String[] emails = new String[listaUtenti.size()];
                 for (int i = 0; i < listaUtenti.size(); i++) {
                     emails[i] = listaUtenti.get(i).getEmail();
@@ -78,143 +79,52 @@ public class HomePage extends JFrame {
                 if (selezione != null && !selezione.equals(utente.getEmail())) {
                     utenteController.rimuoviUtente(selezione);
                     JOptionPane.showMessageDialog(this, "Utente eliminato.");
+                } else if (selezione != null && selezione.equals(utente.getEmail())) {
+                    JOptionPane.showMessageDialog(this, "Non puoi eliminare te stesso!", "Errore", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
-            // Bottone Aggiungi Prodotto (Usa CatalogoController)
+            // Bottone Aggiungi Prodotto
             JButton btnAddProd = new JButton("➕ AGGIUNGI");
             btnAddProd.setBackground(new Color(46, 204, 113));
             btnAddProd.setForeground(Color.WHITE);
             btnAddProd.setFocusPainted(false);
-            btnAddProd.addActionListener(e -> {
-                String id = null;
-                while (true) {
-                    id = JOptionPane.showInputDialog(this, "Inserisci ID Prodotto (es. P09):");
-                    if (id == null) return; 
-                    if (id.trim().isEmpty()) continue; 
-                    
-                    // Verifica su CatalogoController
-                    if (catalogoController.esisteProdotto(id)) {
-                        JOptionPane.showMessageDialog(this, 
-                            "L'ID '" + id + "' è già esistente!\nInseriscine uno nuovo.", 
-                            "Errore ID Duplicato", 
-                            JOptionPane.ERROR_MESSAGE);
-                    } else {
-                        break; 
-                    }
-                }
+            btnAddProd.addActionListener(e -> gestisciAggiuntaProdotto());
 
-                String nome = JOptionPane.showInputDialog(this, "Nome Prodotto:");
-                if (nome == null) return; 
-
-                String prezzoStr = JOptionPane.showInputDialog(this, "Prezzo:");
-                if (prezzoStr == null) return;
-
-                try {
-                    // Chiamata a CatalogoController
-                    catalogoController.aggiungiNuovoProdotto(id, nome, Double.parseDouble(prezzoStr));
-                    refreshCatalogo(); 
-                    JOptionPane.showMessageDialog(this, "Prodotto aggiunto con successo!");
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Il prezzo deve essere un numero valido!", "Errore Formato", JOptionPane.ERROR_MESSAGE);
-                } catch (IllegalArgumentException ex) {
-                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(this, "Errore generico nell'aggiunta.");
-                }
-            });
-
-            // Bottone Rimuovi Prodotto (Usa CatalogoController)
+            // Bottone Rimuovi Prodotto
             JButton btnRemProd = new JButton("🗑️ RIMUOVI PROD.");
             btnRemProd.setBackground(new Color(230, 126, 34)); 
             btnRemProd.setForeground(Color.WHITE);
             btnRemProd.setFocusPainted(false);
-            btnRemProd.addActionListener(e -> {
-                List<Prodotto> catalogo = catalogoController.getCatalogoProdotti();
-                String[] ids = catalogo.stream().map(Prodotto::getId).toArray(String[]::new);
-                
-                String selezione = (String) JOptionPane.showInputDialog(this, "Elimina prodotto:", "Admin", JOptionPane.WARNING_MESSAGE, null, ids, null);
-                
-                if (selezione != null) {
-                    catalogoController.rimuoviProdotto(selezione);
-                    refreshCatalogo();
-                    JOptionPane.showMessageDialog(this, "Prodotto rimosso!");
-                }
-            });
+            btnRemProd.addActionListener(e -> gestisciRimozioneProdotto());
 
-            // Bottone Crea Coupon (Usa CatalogoController)
+            // Bottone Crea Coupon
             JButton btnCreaCoupon = new JButton("🎫 CREA COUPON");
             btnCreaCoupon.setBackground(new Color(155, 89, 182)); 
             btnCreaCoupon.setForeground(Color.WHITE);
             btnCreaCoupon.setFocusPainted(false);
-            btnCreaCoupon.addActionListener(e -> {
-                JPanel panel = new JPanel(new GridLayout(0, 1));
-                JTextField txtCodice = new JTextField();
-                JTextField txtSconto = new JTextField();
-                
-                panel.add(new JLabel("Codice Coupon (es. SCONTO50):"));
-                panel.add(txtCodice);
-                panel.add(new JLabel("Percentuale Sconto (1-100):"));
-                panel.add(txtSconto);
+            btnCreaCoupon.addActionListener(e -> gestisciCreazioneCoupon());
 
-                int result = JOptionPane.showConfirmDialog(this, panel, "Crea Nuovo Coupon",
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-                if (result == JOptionPane.OK_OPTION) {
-                    try {
-                        String codice = txtCodice.getText().trim();
-                        int sconto = Integer.parseInt(txtSconto.getText().trim());
-                        
-                        catalogoController.creaNuovoCoupon(codice, sconto);
-                        JOptionPane.showMessageDialog(this, "Coupon " + codice.toUpperCase() + " creato con successo!");
-                        
-                    } catch (NumberFormatException ex) {
-                        JOptionPane.showMessageDialog(this, "Inserisci un numero intero valido per lo sconto!", "Errore", JOptionPane.ERROR_MESSAGE);
-                    } catch (IllegalArgumentException ex) {
-                        JOptionPane.showMessageDialog(this, ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Errore generico: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            });
-
-            // Bottone Rimuovi Coupon (Usa CatalogoController)
+            // Bottone Rimuovi Coupon
             JButton btnRemCoupon = new JButton("🗑️ RIMUOVI COUPON");
             btnRemCoupon.setBackground(new Color(192, 57, 43)); 
             btnRemCoupon.setForeground(Color.WHITE);
             btnRemCoupon.setFocusPainted(false);
-            btnRemCoupon.addActionListener(e -> {
-                List<String> listaCodici = catalogoController.getListaCodiciCoupon();
-                
-                if (listaCodici.isEmpty()) {
-                    JOptionPane.showMessageDialog(this, "Non ci sono coupon attivi da rimuovere.", "Info", JOptionPane.INFORMATION_MESSAGE);
-                    return;
-                }
+            btnRemCoupon.addActionListener(e -> gestisciRimozioneCoupon());
 
-                String[] coupons = listaCodici.toArray(new String[0]);
-                String selezione = (String) JOptionPane.showInputDialog(
-                    this, "Seleziona il coupon da eliminare:", "Rimuovi Coupon", 
-                    JOptionPane.WARNING_MESSAGE, null, coupons, null
-                );
-                
-                if (selezione != null) {
-                    catalogoController.rimuoviCoupon(selezione);
-                    JOptionPane.showMessageDialog(this, "Coupon " + selezione + " eliminato definitivamente.");
-                }
-            });
-
+            // Aggiungo i bottoni Admin
             adminPanel.add(btnAddProd);
             adminPanel.add(btnRemProd);
             adminPanel.add(btnCreaCoupon); 
             adminPanel.add(btnRemCoupon);
             adminPanel.add(btnAdmin);
-
+            
             header.add(adminPanel, BorderLayout.EAST);
         }
         
         add(header, BorderLayout.NORTH);
 
-        // 2. Griglia Prodotti
+        // --- 2. GRIGLIA PRODOTTI ---
         gridPanel = new JPanel(new GridLayout(0, 4, 20, 20));
         gridPanel.setBackground(new Color(248, 249, 250));
         gridPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
@@ -229,15 +139,45 @@ public class HomePage extends JFrame {
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         add(scrollPane, BorderLayout.CENTER);
 
-        //  3. Footer (Cronologia + Carrello)
-        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 15));
+        // --- 3. FOOTER (Nuovo Layout: Logout a sinistra, Azioni a destra) ---
+        JPanel footer = new JPanel(new BorderLayout()); // Cambiato layout in BorderLayout
         footer.setBackground(Color.WHITE);
-        footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
+        footer.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)),
+            new EmptyBorder(15, 20, 15, 20) // Padding interno
+        ));
+
+        // --- TASTO LOGOUT (Posizionato a OVEST/SINISTRA) ---
+        JButton btnLogout = new JButton("ESCI");
+        btnLogout.setPreferredSize(new Dimension(100, 40));
+        btnLogout.setBackground(new Color(149, 165, 166)); // Grigio
+        btnLogout.setForeground(Color.WHITE);
+        btnLogout.setFocusPainted(false);
+        btnLogout.setFont(new Font("Arial", Font.BOLD, 12));
+        btnLogout.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        btnLogout.addActionListener(e -> {
+            int choice = JOptionPane.showConfirmDialog(
+                this, 
+                "Sei sicuro di voler uscire?", 
+                "Logout", 
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (choice == JOptionPane.YES_OPTION) {
+                this.acquistoController.svuotaCarrello();
+                new LoginPage(this.utenteController, this.acquistoController, this.catalogoController).setVisible(true);
+                this.dispose();
+            }
+        });
+
+        // --- TASTI AZIONE (Posizionati a EST/DESTRA) ---
+        JPanel rightFooterActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        rightFooterActions.setOpaque(false);
 
         JButton btnHistory = new JButton("Cronologia Ordini");
         btnHistory.setPreferredSize(new Dimension(160, 40));
         btnHistory.setFocusPainted(false);
-        // La cronologia usa AcquistoController
         btnHistory.addActionListener(e -> new CronologiaPage(acquistoController, utente).setVisible(true));
 
         JButton btnCart = new JButton("Vai al Carrello 🛒");
@@ -246,29 +186,92 @@ public class HomePage extends JFrame {
         btnCart.setForeground(Color.WHITE);
         btnCart.setFont(new Font("Arial", Font.BOLD, 13));
         btnCart.setFocusPainted(false);
-        // Il carrello usa AcquistoController
         btnCart.addActionListener(e -> new CarrelloPage(acquistoController, utente).setVisible(true));
 
-        footer.add(btnHistory); 
-        footer.add(btnCart);    
+        rightFooterActions.add(btnHistory);
+        rightFooterActions.add(btnCart);
+
+        // Assemblaggio Footer
+        footer.add(btnLogout, BorderLayout.WEST);       // Logout a sinistra
+        footer.add(rightFooterActions, BorderLayout.EAST); // Azioni a destra
+        
         add(footer, BorderLayout.SOUTH);
 
         setLocationRelativeTo(null);
     }
 
-    // Metodo helper per aggiornare la griglia
+    // --- Metodi Helper ---
+
     private void refreshCatalogo() {
         gridPanel.removeAll();
-        // Uso CatalogoController per ottenere la lista
         List<Prodotto> prodotti = catalogoController.getCatalogoProdotti();
         for (Prodotto p : prodotti) {
             gridPanel.add(new ProductPanel(p, prod -> {
-                // L'azione di aggiunta al carrello usa AcquistoController
                 acquistoController.aggiungiAlCarrello(prod);
                 JOptionPane.showMessageDialog(this, "Aggiunto al carrello!");
             }));
         }
         gridPanel.revalidate();
         gridPanel.repaint();
+    }
+
+    private void gestisciAggiuntaProdotto() {
+        String id = null;
+        while (true) {
+            id = JOptionPane.showInputDialog(this, "Inserisci ID Prodotto (es. P09):");
+            if (id == null) return; 
+            if (id.trim().isEmpty()) continue; 
+            if (catalogoController.esisteProdotto(id)) {
+                JOptionPane.showMessageDialog(this, "ID già esistente!", "Errore", JOptionPane.ERROR_MESSAGE);
+            } else { break; }
+        }
+        String nome = JOptionPane.showInputDialog(this, "Nome Prodotto:");
+        if (nome == null) return; 
+        String prezzoStr = JOptionPane.showInputDialog(this, "Prezzo:");
+        if (prezzoStr == null) return;
+
+        try {
+            catalogoController.aggiungiNuovoProdotto(id, nome, Double.parseDouble(prezzoStr));
+            refreshCatalogo(); 
+            JOptionPane.showMessageDialog(this, "Prodotto aggiunto!");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Errore: " + ex.getMessage());
+        }
+    }
+
+    private void gestisciRimozioneProdotto() {
+         List<Prodotto> catalogo = catalogoController.getCatalogoProdotti();
+         String[] ids = catalogo.stream().map(Prodotto::getId).toArray(String[]::new);
+         String selezione = (String) JOptionPane.showInputDialog(this, "Elimina:", "Admin", JOptionPane.WARNING_MESSAGE, null, ids, null);
+         if (selezione != null) {
+             catalogoController.rimuoviProdotto(selezione);
+             refreshCatalogo();
+             JOptionPane.showMessageDialog(this, "Rimosso!");
+         }
+    }
+
+    private void gestisciCreazioneCoupon() {
+        JPanel panel = new JPanel(new GridLayout(0, 1));
+        JTextField txtCodice = new JTextField();
+        JTextField txtSconto = new JTextField();
+        panel.add(new JLabel("Codice:")); panel.add(txtCodice);
+        panel.add(new JLabel("Sconto %:")); panel.add(txtSconto);
+        int result = JOptionPane.showConfirmDialog(this, panel, "Nuovo Coupon", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                catalogoController.creaNuovoCoupon(txtCodice.getText(), Integer.parseInt(txtSconto.getText()));
+                JOptionPane.showMessageDialog(this, "Coupon creato!");
+            } catch (Exception ex) { JOptionPane.showMessageDialog(this, "Errore: " + ex.getMessage()); }
+        }
+    }
+
+    private void gestisciRimozioneCoupon() {
+        List<String> codici = catalogoController.getListaCodiciCoupon();
+        if(codici.isEmpty()) { JOptionPane.showMessageDialog(this, "Nessun coupon."); return; }
+        String selezione = (String) JOptionPane.showInputDialog(this, "Elimina:", "Admin", JOptionPane.WARNING_MESSAGE, null, codici.toArray(new String[0]), null);
+        if (selezione != null) {
+            catalogoController.rimuoviCoupon(selezione);
+            JOptionPane.showMessageDialog(this, "Eliminato.");
+        }
     }
 }

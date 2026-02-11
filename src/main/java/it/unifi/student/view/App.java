@@ -23,8 +23,8 @@ public class App {
         System.out.println("LOG: Avvio applicazione...");
         
         // PERSISTENZA
-        // DatabaseManager.executeSqlScript("/sql/schema.sql");
-        // DatabaseManager.executeSqlScript("/sql/default.sql");
+        //DatabaseManager.executeSqlScript("/sql/schema.sql");
+        //DatabaseManager.executeSqlScript("/sql/default.sql");
 
         // 1. Inizializzazione dei DAO
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();        

@@ -1,5 +1,6 @@
 -- Cancella le tabelle vecchie per poterle ricreare con le nuove colonne
 DROP TABLE IF EXISTS Ordine_Prodotti CASCADE;
+DROP TABLE IF EXISTS Coupon CASCADE;
 DROP TABLE IF EXISTS Ordine CASCADE;
 DROP TABLE IF EXISTS Prodotto CASCADE;
 DROP TABLE IF EXISTS Utente CASCADE;
@@ -34,7 +35,7 @@ CREATE TABLE Ordine_Prodotti (
     PRIMARY KEY (id_ordine, id_prodotto)
 );
 
-CREATE TABLE IF NOT EXISTS Coupon (
+CREATE TABLE Coupon (
     codice VARCHAR(50) PRIMARY KEY,
     percentuale_sconto INT NOT NULL CHECK (percentuale_sconto > 0 AND percentuale_sconto <= 100)
 );
