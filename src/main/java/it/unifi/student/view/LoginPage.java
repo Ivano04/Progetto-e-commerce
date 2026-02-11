@@ -6,6 +6,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionListener; // Aggiunto per pulizia
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -18,21 +19,25 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-
+import it.unifi.student.businesslogic.UtenteController;
 import it.unifi.student.businesslogic.AcquistoController;
+import it.unifi.student.businesslogic.CatalogoController; 
 import it.unifi.student.businesslogic.CredenzialiNonValideException;
 import it.unifi.student.domain.Utente;
 
 public class LoginPage extends JFrame {
 
-    private AcquistoController controller;
-
-    public LoginPage(AcquistoController controller) {
-        this.controller = controller;
-
+    private UtenteController utenteController;
+    private AcquistoController acquistoController; // Temporaneo: serve per aprire la HomePage
+    private CatalogoController catalogoController;
+    // Costruttore aggiornato: prende DUE controller
+    public LoginPage(UtenteController utenteController, AcquistoController acquistoController, CatalogoController cC) {
+        this.utenteController = utenteController;
+        this.acquistoController = acquistoController;
+        this.catalogoController = cC;
         // Configurazione Finestra
         setTitle("Accesso - UNIFI E-Commerce");
-        setSize(450, 550); // Ho aumentato leggermente l'altezza per farci stare i due tasti
+        setSize(450, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new GridBagLayout()); 
         getContentPane().setBackground(new Color(236, 240, 241)); 
@@ -87,7 +92,7 @@ public class LoginPage extends JFrame {
 
         // 3. Logica dei Bottoni
         
-        // Logica Login
+        // Logica Login -> Usa utenteController
         btnLogin.addActionListener(e -> {
             String email = txtEmail.getText();
             String password = new String(txtPass.getPassword());
@@ -98,21 +103,24 @@ public class LoginPage extends JFrame {
             }
 
             try {
-                Utente utenteLoggato = controller.autentica(email, password);
-                new HomePage(controller, utenteLoggato).setVisible(true);
+                // CHIAMATA AL NUOVO CONTROLLER
+                Utente utenteLoggato = utenteController.autentica(email, password);
+                
+                // Apro la HomePage passando il vecchio controller (che contiene ancora la logica acquisti)
+                // In futuro, la HomePage prenderà anche CatalogoController.
+                new HomePage(acquistoController, catalogoController, utenteController, utenteLoggato).setVisible(true);
                 this.dispose(); 
             } catch (CredenzialiNonValideException ex) {
                 JOptionPane.showMessageDialog(this, ex.getMessage(), "Errore di accesso", JOptionPane.ERROR_MESSAGE);
             }
         });
 
-        // Logica Registrazione 
+        // Logica Registrazione -> Passa utenteController alla RegisterPage
         btnRegister.addActionListener(e -> {
-            new RegisterPage(controller).setVisible(true);
-            // Non chiudiamo la login (this.dispose()) così l'utente può tornare qui dopo la registrazione
+            new RegisterPage(utenteController).setVisible(true);
         });
 
-        //4. Assemblaggio Card 
+        // 4. Assemblaggio Card 
         card.add(lblTitolo);
         card.add(lblSotto);
         card.add(txtEmail);
@@ -120,10 +128,7 @@ public class LoginPage extends JFrame {
         card.add(txtPass);
         card.add(Box.createRigidArea(new Dimension(0, 25)));
         
-        // Aggiungo il bottone LOGIN
         card.add(btnLogin);
-        
-        // Aggiungo uno spazietto e poi il bottone REGISTRAZIONE
         card.add(Box.createRigidArea(new Dimension(0, 10))); 
         card.add(btnRegister); 
 

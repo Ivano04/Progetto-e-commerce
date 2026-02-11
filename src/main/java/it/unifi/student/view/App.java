@@ -3,6 +3,8 @@ package it.unifi.student.view;
 import javax.swing.SwingUtilities;
 
 import it.unifi.student.businesslogic.AcquistoController;
+import it.unifi.student.businesslogic.CatalogoController; // NUOVO
+import it.unifi.student.businesslogic.UtenteController;
 import it.unifi.student.businesslogic.EmailService;
 import it.unifi.student.businesslogic.LogService;
 import it.unifi.student.data.CouponDAO;
@@ -18,33 +20,34 @@ import it.unifi.student.data.UtenteDAOImpl;
 public class App {
     public static void main(String[] args) {
 
-        // 1. Inizializzazione Database 
         System.out.println("LOG: Avvio applicazione...");
-
-        // PERSISTENZA ATTIVATA
-        // Decommentare queste righe se si vuole resettare il DB o aggiornare lo schema
-        //DatabaseManager.executeSqlScript("/sql/schema.sql");
+        
+        // PERSISTENZA
+        // DatabaseManager.executeSqlScript("/sql/schema.sql");
         // DatabaseManager.executeSqlScript("/sql/default.sql");
 
-        // 2. Inizializzazione dei DAO (Pattern Singleton e JDBC)
+        // 1. Inizializzazione dei DAO
         ProdottoDAO pDao = ProdottoDAOImpl.getInstance();        
         OrdineDAO oDao = OrdineDAOImpl.getInstance();
         UtenteDAO uDao = UtenteDAOImpl.getInstance();
-        // NUOVO: Inizializzazione del DAO per i Coupon
         CouponDAO cDao = CouponDAOImpl.getInstance(); 
 
-        // 3. Creazione del Controller con Dependency Injection
-        // Aggiornato per accettare anche il CouponDAO
-        AcquistoController controller = new AcquistoController(pDao, oDao, uDao, cDao);
+        // 2. Creazione dei TRE Controller
+        UtenteController utenteController = new UtenteController(uDao);
+        CatalogoController catalogoController = new CatalogoController(pDao, cDao);
+        
+        // AcquistoController ora è pulito e prende solo oDao e cDao
+        AcquistoController acquistoController = new AcquistoController(oDao, cDao);
 
-        // 4. Configurazione Pattern Observer (Event-Driven)
-        controller.attach(new EmailService());
-        controller.attach(new LogService());
+        // 3. Configurazione Observer
+        acquistoController.attach(new EmailService());
+        acquistoController.attach(new LogService());
 
-        // 5. Avvio dell'Interfaccia Grafica
+        // 4. Avvio GUI
         System.out.println("LOG: Apertura interfaccia utente...");
         SwingUtilities.invokeLater(() -> {
-            new LoginPage(controller).setVisible(true);
+            // Passiamo tutti i controller necessari alla LoginPage
+            new LoginPage(utenteController, acquistoController, catalogoController).setVisible(true);
         });
     }
 }

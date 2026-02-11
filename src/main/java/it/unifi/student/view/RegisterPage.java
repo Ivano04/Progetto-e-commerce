@@ -19,18 +19,19 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-import it.unifi.student.businesslogic.AcquistoController;
+// NUOVO IMPORT
+import it.unifi.student.businesslogic.UtenteController;
 
 public class RegisterPage extends JFrame {
 
-    private AcquistoController controller;
+    private UtenteController controller; // Cambiato tipo
 
-    public RegisterPage(AcquistoController controller) {
+    public RegisterPage(UtenteController controller) {
         this.controller = controller;
 
         // Configurazione Finestra 
         setTitle("Registrazione - UNIFI E-Commerce");
-        setSize(450, 600); // Un po' più alta per far stare 3 campi
+        setSize(450, 600); 
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLayout(new GridBagLayout()); 
         getContentPane().setBackground(new Color(236, 240, 241));
@@ -98,7 +99,7 @@ public class RegisterPage extends JFrame {
                 return;
             }
 
-            // Chiamo il controller passando 3 parametri
+            // USO DEL NUOVO CONTROLLER
             boolean esito = controller.registraUtente(nome, email, password);
 
             if (esito) {
@@ -115,7 +116,7 @@ public class RegisterPage extends JFrame {
         card.add(lblTitolo);
         card.add(lblSotto);
         
-        card.add(txtNome); // Aggiunto
+        card.add(txtNome);
         card.add(Box.createRigidArea(new Dimension(0, 15)));
         
         card.add(txtEmail);

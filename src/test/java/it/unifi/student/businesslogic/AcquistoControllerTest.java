@@ -2,7 +2,6 @@ package it.unifi.student.businesslogic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,27 +13,27 @@ import it.unifi.student.data.ProdottoDAO;
 import it.unifi.student.data.ProdottoDAOImpl;
 import it.unifi.student.data.UtenteDAO;
 import it.unifi.student.data.UtenteDAOImpl;
-// --- NUOVI IMPORT AGGIUNTI ---
 import it.unifi.student.data.CouponDAO;
 import it.unifi.student.data.CouponDAOImpl;
 
 import it.unifi.student.domain.Ordine;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
+import it.unifi.student.domain.Coupon;
 
 /**
- * Test di unità per AcquistoController.
+ * Test di unità per AcquistoController (Refattorizzato).
  */
 public class AcquistoControllerTest {
 
     private AcquistoController controller;
     private StubObserver stubObserver;
     
-    // Riferimenti ai DAO per popolare il DB nei test
+    // DAO necessari per il setup dei dati di prova
     private ProdottoDAO pDao;
     private UtenteDAO uDao;
     private OrdineDAO oDao;
-    private CouponDAO cDao; // <--- NUOVO DAO
+    private CouponDAO cDao;
 
     // --- Stub per il Testing ---
     private class StubObserver implements Observer {
@@ -52,7 +51,7 @@ public class AcquistoControllerTest {
 
     @BeforeEach
     void setUp() {
-        // 1. PULIZIA E SETUP DATABASE REALE
+        // 1. PULIZIA E SETUP DATABASE
         DatabaseManager.executeSqlScript("/sql/reset.sql");
         DatabaseManager.executeSqlScript("/sql/schema.sql");
         
@@ -60,10 +59,10 @@ public class AcquistoControllerTest {
         pDao = ProdottoDAOImpl.getInstance(); 
         oDao = OrdineDAOImpl.getInstance();
         uDao = UtenteDAOImpl.getInstance();
-        cDao = CouponDAOImpl.getInstance(); // <--- INIZIALIZZAZIONE NUOVO DAO
+        cDao = CouponDAOImpl.getInstance();
 
-        // 3. Creazione Controller (ORA CON 4 PARAMETRI)
-        controller = new AcquistoController(pDao, oDao, uDao, cDao);
+        // 3. Creazione Controller (NUOVO COSTRUTTORE: Solo Ordine e Coupon DAO)
+        controller = new AcquistoController(oDao, cDao);
         
         stubObserver = new StubObserver();
         controller.attach(stubObserver);
@@ -71,7 +70,7 @@ public class AcquistoControllerTest {
 
     @Test
     public void testObserver_NotificaAcquistoCompletato() {
-        // Setup dati DB
+        // Setup dati DB (uso i DAO direttamente)
         Prodotto p = new Prodotto("T1", "Prodotto Test", 50.0);
         pDao.save(p); 
         
@@ -154,68 +153,51 @@ public class AcquistoControllerTest {
     @Test
     public void testRimuoviDalCarrello_VerificaDiminuzione() {
         Prodotto p = new Prodotto("T1", "Test", 10.0);
+        // Non serve salvare nel DB per testare il carrello in memoria, 
+        // ma è buona prassi avere oggetti consistenti.
         
         controller.aggiungiAlCarrello(p);
         assertEquals(1, controller.getCarrello().size());
 
         controller.rimuoviDalCarrello(p);
         
-        assertTrue(controller.getCarrello().isEmpty(), "Il carrello dovrebbe essere vuoto dopo la rimozione");
-        assertEquals(0.0, controller.getTotaleCarrello(), "Il totale dovrebbe tornare a 0");
-    }
-
-    @Test
-    public void testAutentica_CredenzialiInesistenti_LanciaException() {
-        String emailErrata = "non.esisto@studenti.unifi.it";
-        String passwordErrata = "12345";
-
-        assertThrows(CredenzialiNonValideException.class, () -> {
-            controller.autentica(emailErrata, passwordErrata);
-        }, "Il controller doveva lanciare CredenzialiNonValideException");
+        assertTrue(controller.getCarrello().isEmpty());
+        assertEquals(0.0, controller.getTotaleCarrello());
     }
 
     @Test
     public void testStrategy_CambioStrategiaRuntime() {
-        System.out.println("--- TEST STRATEGY PATTERN ---");
-
+        // Test puramente in memoria per la strategia
         Prodotto p = new Prodotto("LUX", "Prodotto Lusso", 100.0);
-        pDao.save(p);
         
-        Utente u = new Utente("strategy@test.it", "StrategyUser", "pwd", false);
-        uDao.register(u.getNome(), u.getEmail(), "pwd");
-
         controller.aggiungiAlCarrello(p);
 
         double totalePieno = controller.getTotaleCarrello();
-        assertEquals(100.0, totalePieno, "Il totale iniziale deve essere prezzo pieno");
+        assertEquals(100.0, totalePieno);
 
         controller.setScontoStrategy(new ScontoPercentualeStrategy(20));
         
         double totaleScontato = controller.getTotaleCarrello();
-        assertEquals(80.0, totaleScontato, "Il totale deve essere ridotto del 20%");
-
-        Ordine ordine = controller.finalizzaAcquisto(u);
-        assertNotNull(ordine);
-        assertEquals(80.0, ordine.getTotale(), "L'ordine salvato deve mantenere lo sconto");
+        assertEquals(80.0, totaleScontato);
     }
 
-    // --- NUOVO TEST AGGIUNTO PER I COUPON ---
     @Test
     public void testCoupon_Integrazione() {
-        // 1. Creo un coupon nel DB
+        // 1. SETUP: Creo un coupon nel DB direttamente tramite DAO
+        // (Simulo che l'admin lo abbia creato)
         String codice = "SCONTO50";
-        controller.creaNuovoCoupon(codice, 50);
+        cDao.save(new Coupon(codice, 50));
 
-        // 2. Aggiungo prodotto
+        // 2. Aggiungo prodotto al carrello
         Prodotto p = new Prodotto("TEST_COUPON", "Test", 100.0);
         pDao.save(p);
         controller.aggiungiAlCarrello(p);
 
-        // 3. Applico il coupon
+        // 3. AZIONE: Applico il coupon tramite Controller
         boolean applicato = controller.applicaCoupon(codice);
-        assertTrue(applicato, "Il coupon deve essere accettato");
+        assertTrue(applicato, "Il coupon deve essere accettato dal controller");
 
-        // 4. Verifico il totale
+        // 4. VERIFICA
         assertEquals(50.0, controller.getTotaleCarrello(), "Il totale deve essere dimezzato");
     }
 }

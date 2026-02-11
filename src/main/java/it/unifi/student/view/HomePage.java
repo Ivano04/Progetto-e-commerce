@@ -19,17 +19,25 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import it.unifi.student.businesslogic.AcquistoController;
+import it.unifi.student.businesslogic.CatalogoController; // NUOVO IMPORT
+import it.unifi.student.businesslogic.UtenteController; // Opzionale, se vuoi gestire utenti qui
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
 
 public class HomePage extends JFrame {
 
-    private AcquistoController controller;
+    private AcquistoController acquistoController;
+    private CatalogoController catalogoController;
+    private UtenteController utenteController; // Aggiungiamo anche questo per la gestione utenti admin
     private Utente utente;
     private JPanel gridPanel; 
 
-    public HomePage(AcquistoController controller, Utente utente) {
-        this.controller = controller;
+    // Costruttore aggiornato: prende TUTTI e 3 i controller
+    // (Nota: UtenteController serve se vuoi mantenere la funzionalità "Rimuovi Utenti" funzionante)
+    public HomePage(AcquistoController acquistoController, CatalogoController catalogoController, UtenteController utenteController, Utente utente) {
+        this.acquistoController = acquistoController;
+        this.catalogoController = catalogoController;
+        this.utenteController = utenteController;
         this.utente = utente;
 
         // Configurazione Finestra
@@ -54,51 +62,48 @@ public class HomePage extends JFrame {
             JPanel adminPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
             adminPanel.setOpaque(false);
 
-            // Bottone Gestione Utenti
+            // Bottone Gestione Utenti (Usa UtenteController)
             JButton btnAdmin = new JButton("🗑️ UTENTI");
             btnAdmin.setBackground(Color.RED);
             btnAdmin.setForeground(Color.WHITE);
             btnAdmin.setFocusPainted(false);
             btnAdmin.addActionListener(e -> {
-                List<Utente> listaUtenti = controller.getListaUtenti();
+                // Ora chiamo UtenteController
+                List<Utente> listaUtenti = utenteController.getListaUtenti();
                 String[] emails = new String[listaUtenti.size()];
                 for (int i = 0; i < listaUtenti.size(); i++) {
                     emails[i] = listaUtenti.get(i).getEmail();
                 }
                 String selezione = (String) JOptionPane.showInputDialog(this, "Elimina utente:", "Admin", JOptionPane.WARNING_MESSAGE, null, emails, null);
                 if (selezione != null && !selezione.equals(utente.getEmail())) {
-                    controller.rimuoviUtente(selezione);
+                    utenteController.rimuoviUtente(selezione);
                     JOptionPane.showMessageDialog(this, "Utente eliminato.");
                 }
             });
 
-            // Bottone Aggiungi Prodotto
+            // Bottone Aggiungi Prodotto (Usa CatalogoController)
             JButton btnAddProd = new JButton("➕ AGGIUNGI");
             btnAddProd.setBackground(new Color(46, 204, 113));
             btnAddProd.setForeground(Color.WHITE);
             btnAddProd.setFocusPainted(false);
             btnAddProd.addActionListener(e -> {
                 String id = null;
-                
-                // 1. Ciclo per richiedere l'ID finché non è valido (univoco)
                 while (true) {
                     id = JOptionPane.showInputDialog(this, "Inserisci ID Prodotto (es. P09):");
+                    if (id == null) return; 
+                    if (id.trim().isEmpty()) continue; 
                     
-                    if (id == null) return; // L'utente ha premuto Annulla
-                    if (id.trim().isEmpty()) continue; // ID vuoto, richiedi
-                    
-                    // Controllo se esiste già
-                    if (controller.esisteProdotto(id)) {
+                    // Verifica su CatalogoController
+                    if (catalogoController.esisteProdotto(id)) {
                         JOptionPane.showMessageDialog(this, 
                             "L'ID '" + id + "' è già esistente!\nInseriscine uno nuovo.", 
                             "Errore ID Duplicato", 
                             JOptionPane.ERROR_MESSAGE);
                     } else {
-                        break; // ID valido e libero, esco dal ciclo
+                        break; 
                     }
                 }
 
-                // 2. Se siamo qui, l'ID è valido. Chiedo il resto dei dati.
                 String nome = JOptionPane.showInputDialog(this, "Nome Prodotto:");
                 if (nome == null) return; 
 
@@ -106,7 +111,8 @@ public class HomePage extends JFrame {
                 if (prezzoStr == null) return;
 
                 try {
-                    controller.aggiungiNuovoProdotto(id, nome, Double.parseDouble(prezzoStr));
+                    // Chiamata a CatalogoController
+                    catalogoController.aggiungiNuovoProdotto(id, nome, Double.parseDouble(prezzoStr));
                     refreshCatalogo(); 
                     JOptionPane.showMessageDialog(this, "Prodotto aggiunto con successo!");
                 } catch (NumberFormatException ex) {
@@ -118,31 +124,30 @@ public class HomePage extends JFrame {
                 }
             });
 
-            // Bottone Rimuovi Prodotto
+            // Bottone Rimuovi Prodotto (Usa CatalogoController)
             JButton btnRemProd = new JButton("🗑️ RIMUOVI PROD.");
-            btnRemProd.setBackground(new Color(230, 126, 34)); // Arancione
+            btnRemProd.setBackground(new Color(230, 126, 34)); 
             btnRemProd.setForeground(Color.WHITE);
             btnRemProd.setFocusPainted(false);
             btnRemProd.addActionListener(e -> {
-                List<Prodotto> catalogo = controller.getCatalogoProdotti();
+                List<Prodotto> catalogo = catalogoController.getCatalogoProdotti();
                 String[] ids = catalogo.stream().map(Prodotto::getId).toArray(String[]::new);
                 
                 String selezione = (String) JOptionPane.showInputDialog(this, "Elimina prodotto:", "Admin", JOptionPane.WARNING_MESSAGE, null, ids, null);
                 
                 if (selezione != null) {
-                    controller.rimuoviProdotto(selezione);
+                    catalogoController.rimuoviProdotto(selezione);
                     refreshCatalogo();
                     JOptionPane.showMessageDialog(this, "Prodotto rimosso!");
                 }
             });
 
-            // --- NUOVO BOTTONE: CREA COUPON ---
+            // Bottone Crea Coupon (Usa CatalogoController)
             JButton btnCreaCoupon = new JButton("🎫 CREA COUPON");
-            btnCreaCoupon.setBackground(new Color(155, 89, 182)); // Viola
+            btnCreaCoupon.setBackground(new Color(155, 89, 182)); 
             btnCreaCoupon.setForeground(Color.WHITE);
             btnCreaCoupon.setFocusPainted(false);
             btnCreaCoupon.addActionListener(e -> {
-                // Pannello per inserire i due dati
                 JPanel panel = new JPanel(new GridLayout(0, 1));
                 JTextField txtCodice = new JTextField();
                 JTextField txtSconto = new JTextField();
@@ -160,8 +165,7 @@ public class HomePage extends JFrame {
                         String codice = txtCodice.getText().trim();
                         int sconto = Integer.parseInt(txtSconto.getText().trim());
                         
-                        // Chiamo il controller
-                        controller.creaNuovoCoupon(codice, sconto);
+                        catalogoController.creaNuovoCoupon(codice, sconto);
                         JOptionPane.showMessageDialog(this, "Coupon " + codice.toUpperCase() + " creato con successo!");
                         
                     } catch (NumberFormatException ex) {
@@ -169,53 +173,42 @@ public class HomePage extends JFrame {
                     } catch (IllegalArgumentException ex) {
                         JOptionPane.showMessageDialog(this, ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
                     } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Errore generico creazione coupon: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(this, "Errore generico: " + ex.getMessage(), "Errore", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             });
 
+            // Bottone Rimuovi Coupon (Usa CatalogoController)
             JButton btnRemCoupon = new JButton("🗑️ RIMUOVI COUPON");
-            btnRemCoupon.setBackground(new Color(192, 57, 43)); // Rosso scuro
+            btnRemCoupon.setBackground(new Color(192, 57, 43)); 
             btnRemCoupon.setForeground(Color.WHITE);
             btnRemCoupon.setFocusPainted(false);
             btnRemCoupon.addActionListener(e -> {
-                // 1. Recupero la lista dei codici dal DB tramite Controller
-                List<String> listaCodici = controller.getListaCodiciCoupon();
+                List<String> listaCodici = catalogoController.getListaCodiciCoupon();
                 
                 if (listaCodici.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Non ci sono coupon attivi da rimuovere.", "Info", JOptionPane.INFORMATION_MESSAGE);
                     return;
                 }
 
-                // 2. Converto in array per il popup
                 String[] coupons = listaCodici.toArray(new String[0]);
-                
-                // 3. Mostro il popup di selezione
                 String selezione = (String) JOptionPane.showInputDialog(
-                    this, 
-                    "Seleziona il coupon da eliminare:", 
-                    "Rimuovi Coupon", 
-                    JOptionPane.WARNING_MESSAGE, 
-                    null, 
-                    coupons, 
-                    null
+                    this, "Seleziona il coupon da eliminare:", "Rimuovi Coupon", 
+                    JOptionPane.WARNING_MESSAGE, null, coupons, null
                 );
                 
-                // 4. Se l'admin ha selezionato qualcosa e premuto OK
                 if (selezione != null) {
-                    controller.rimuoviCoupon(selezione);
+                    catalogoController.rimuoviCoupon(selezione);
                     JOptionPane.showMessageDialog(this, "Coupon " + selezione + " eliminato definitivamente.");
                 }
             });
 
-            // Aggiunta bottoni al pannello Admin
             adminPanel.add(btnAddProd);
             adminPanel.add(btnRemProd);
             adminPanel.add(btnCreaCoupon); 
             adminPanel.add(btnRemCoupon);
             adminPanel.add(btnAdmin);
 
-            
             header.add(adminPanel, BorderLayout.EAST);
         }
         
@@ -241,20 +234,20 @@ public class HomePage extends JFrame {
         footer.setBackground(Color.WHITE);
         footer.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(220, 220, 220)));
 
-        // Bottone Cronologia
         JButton btnHistory = new JButton("Cronologia Ordini");
         btnHistory.setPreferredSize(new Dimension(160, 40));
         btnHistory.setFocusPainted(false);
-        btnHistory.addActionListener(e -> new CronologiaPage(controller, utente).setVisible(true));
+        // La cronologia usa AcquistoController
+        btnHistory.addActionListener(e -> new CronologiaPage(acquistoController, utente).setVisible(true));
 
-        // Bottone Carrello
         JButton btnCart = new JButton("Vai al Carrello 🛒");
         btnCart.setPreferredSize(new Dimension(160, 40));
         btnCart.setBackground(new Color(46, 204, 113));
         btnCart.setForeground(Color.WHITE);
         btnCart.setFont(new Font("Arial", Font.BOLD, 13));
         btnCart.setFocusPainted(false);
-        btnCart.addActionListener(e -> new CarrelloPage(controller, utente).setVisible(true));
+        // Il carrello usa AcquistoController
+        btnCart.addActionListener(e -> new CarrelloPage(acquistoController, utente).setVisible(true));
 
         footer.add(btnHistory); 
         footer.add(btnCart);    
@@ -266,10 +259,12 @@ public class HomePage extends JFrame {
     // Metodo helper per aggiornare la griglia
     private void refreshCatalogo() {
         gridPanel.removeAll();
-        List<Prodotto> prodotti = controller.getCatalogoProdotti();
+        // Uso CatalogoController per ottenere la lista
+        List<Prodotto> prodotti = catalogoController.getCatalogoProdotti();
         for (Prodotto p : prodotti) {
             gridPanel.add(new ProductPanel(p, prod -> {
-                controller.aggiungiAlCarrello(prod);
+                // L'azione di aggiunta al carrello usa AcquistoController
+                acquistoController.aggiungiAlCarrello(prod);
                 JOptionPane.showMessageDialog(this, "Aggiunto al carrello!");
             }));
         }
