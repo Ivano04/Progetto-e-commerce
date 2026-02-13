@@ -6,9 +6,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagLayout;
-import java.awt.event.ActionListener; // Aggiunto per pulizia
 
-import javax.swing.BorderFactory;
+import javax.swing.BorderFactory; // Aggiunto per pulizia
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -19,10 +18,11 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import it.unifi.student.businesslogic.UtenteController;
-import it.unifi.student.businesslogic.AcquistoController;
-import it.unifi.student.businesslogic.CatalogoController; 
-import it.unifi.student.businesslogic.CredenzialiNonValideException;
+
+import it.unifi.student.businesslogic.controllerlogic.AcquistoController;
+import it.unifi.student.businesslogic.controllerlogic.CatalogoController; 
+import it.unifi.student.businesslogic.controllerlogic.UtenteController;
+import it.unifi.student.businesslogic.desingpattern.CredenzialiNonValideException;
 import it.unifi.student.domain.Utente;
 
 public class LoginPage extends JFrame {

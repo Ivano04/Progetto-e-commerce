@@ -1,10 +1,11 @@
-package it.unifi.student.businesslogic;
+package it.unifi.student.businesslogic.controllerlogic;
 
 import java.util.List;
-import it.unifi.student.data.ProdottoDAO;
+
 import it.unifi.student.data.CouponDAO;
-import it.unifi.student.domain.Prodotto;
+import it.unifi.student.data.ProdottoDAO;
 import it.unifi.student.domain.Coupon;
+import it.unifi.student.domain.Prodotto;
 
 /**
  * Controller per la gestione del Catalogo (Prodotti e Coupon).

@@ -1,6 +1,7 @@
-package it.unifi.student.businesslogic;
+package it.unifi.student.businesslogic.desingpattern;
 
 import java.util.List;
+
 import it.unifi.student.domain.Prodotto;
 
 /**

@@ -6,20 +6,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import it.unifi.student.data.DatabaseManager; 
+import it.unifi.student.businesslogic.controllerlogic.AcquistoController;
+import it.unifi.student.businesslogic.desingpattern.Observer;
+import it.unifi.student.businesslogic.desingpattern.ScontoPercentualeStrategy;
+import it.unifi.student.businesslogic.desingpattern.TipoEvento;
+import it.unifi.student.data.CouponDAO;
+import it.unifi.student.data.CouponDAOImpl;
+import it.unifi.student.data.DatabaseManager;
 import it.unifi.student.data.OrdineDAO;
 import it.unifi.student.data.OrdineDAOImpl;
 import it.unifi.student.data.ProdottoDAO;
 import it.unifi.student.data.ProdottoDAOImpl;
 import it.unifi.student.data.UtenteDAO;
 import it.unifi.student.data.UtenteDAOImpl;
-import it.unifi.student.data.CouponDAO;
-import it.unifi.student.data.CouponDAOImpl;
-
+import it.unifi.student.domain.Coupon;
 import it.unifi.student.domain.Ordine;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
-import it.unifi.student.domain.Coupon;
+
 
 /**
  * Test di unità per AcquistoController (Refattorizzato).

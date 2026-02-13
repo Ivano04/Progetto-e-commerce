@@ -1,4 +1,4 @@
-package it.unifi.student.businesslogic;
+package it.unifi.student.businesslogic.desingpattern;
 
 import it.unifi.student.domain.Ordine;
 public class EmailService implements Observer {

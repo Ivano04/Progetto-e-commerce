@@ -1,14 +1,20 @@
-package it.unifi.student.businesslogic;
+package it.unifi.student.businesslogic.controllerlogic;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import it.unifi.student.data.OrdineDAO;
+import it.unifi.student.businesslogic.desingpattern.NessunoScontoStrategy;
+import it.unifi.student.businesslogic.desingpattern.Observer;
+import it.unifi.student.businesslogic.desingpattern.ScontoPercentualeStrategy;
+import it.unifi.student.businesslogic.desingpattern.ScontoStrategy;
+import it.unifi.student.businesslogic.desingpattern.Subject;
+import it.unifi.student.businesslogic.desingpattern.TipoEvento;
 import it.unifi.student.data.CouponDAO;
+import it.unifi.student.data.OrdineDAO;
+import it.unifi.student.domain.Coupon;
 import it.unifi.student.domain.Ordine;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
-import it.unifi.student.domain.Coupon;
 
 /**
  * Controller dedicato SOLO al processo di acquisto.

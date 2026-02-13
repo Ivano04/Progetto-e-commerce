@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import it.unifi.student.businesslogic.controllerlogic.UtenteController;
+import it.unifi.student.businesslogic.desingpattern.CredenzialiNonValideException;
 import it.unifi.student.data.DatabaseManager;
 import it.unifi.student.data.UtenteDAO;
 import it.unifi.student.data.UtenteDAOImpl;

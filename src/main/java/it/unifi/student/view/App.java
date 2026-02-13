@@ -2,14 +2,13 @@ package it.unifi.student.view;
 
 import javax.swing.SwingUtilities;
 
-import it.unifi.student.businesslogic.AcquistoController;
-import it.unifi.student.businesslogic.CatalogoController; // NUOVO
-import it.unifi.student.businesslogic.UtenteController;
-import it.unifi.student.businesslogic.EmailService;
-import it.unifi.student.businesslogic.LogService;
+import it.unifi.student.businesslogic.controllerlogic.AcquistoController;
+import it.unifi.student.businesslogic.controllerlogic.CatalogoController;
+import it.unifi.student.businesslogic.controllerlogic.UtenteController;
+import it.unifi.student.businesslogic.desingpattern.EmailService;
+import it.unifi.student.businesslogic.desingpattern.LogService;
 import it.unifi.student.data.CouponDAO;
 import it.unifi.student.data.CouponDAOImpl;
-import it.unifi.student.data.DatabaseManager; 
 import it.unifi.student.data.OrdineDAO;
 import it.unifi.student.data.OrdineDAOImpl;
 import it.unifi.student.data.ProdottoDAO;

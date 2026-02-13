@@ -1,4 +1,4 @@
-package it.unifi.student.businesslogic;
+package it.unifi.student.businesslogic.desingpattern;
 
 public interface Subject {
     void attach(Observer observer);

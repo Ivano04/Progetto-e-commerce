@@ -19,8 +19,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-// NUOVO IMPORT
-import it.unifi.student.businesslogic.UtenteController;
+import it.unifi.student.businesslogic.controllerlogic.UtenteController;
 
 public class RegisterPage extends JFrame {
 

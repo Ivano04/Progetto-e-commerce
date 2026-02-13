@@ -19,9 +19,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
-import it.unifi.student.businesslogic.AcquistoController;
-import it.unifi.student.businesslogic.CatalogoController;
-import it.unifi.student.businesslogic.UtenteController;
+import it.unifi.student.businesslogic.controllerlogic.AcquistoController;
+import it.unifi.student.businesslogic.controllerlogic.CatalogoController;
+import it.unifi.student.businesslogic.controllerlogic.UtenteController;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
 

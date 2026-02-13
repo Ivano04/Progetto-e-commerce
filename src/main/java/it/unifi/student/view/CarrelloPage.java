@@ -1,13 +1,29 @@
 package it.unifi.student.view;
 
-import javax.swing.*;
-import javax.swing.border.EmptyBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.util.List;
 
-import it.unifi.student.businesslogic.AcquistoController;
-import it.unifi.student.businesslogic.NessunoScontoStrategy;
-import it.unifi.student.businesslogic.ScontoPercentualeStrategy;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
+
+import it.unifi.student.businesslogic.controllerlogic.AcquistoController;
+import it.unifi.student.businesslogic.desingpattern.NessunoScontoStrategy;
 import it.unifi.student.domain.Prodotto;
 import it.unifi.student.domain.Utente;
 
