@@ -157,8 +157,6 @@ public class AcquistoControllerTest {
     @Test
     public void testRimuoviDalCarrello_VerificaDiminuzione() {
         Prodotto p = new Prodotto("T1", "Test", 10.0);
-        // Non serve salvare nel DB per testare il carrello in memoria, 
-        // ma è buona prassi avere oggetti consistenti.
         
         controller.aggiungiAlCarrello(p);
         assertEquals(1, controller.getCarrello().size());
@@ -170,8 +168,7 @@ public class AcquistoControllerTest {
     }
 
     @Test
-    public void testStrategy_CambioStrategiaRuntime() {
-        // Test puramente in memoria per la strategia
+    public void testStrategy_CreazioneCoupon() {
         Prodotto p = new Prodotto("LUX", "Prodotto Lusso", 100.0);
         
         controller.aggiungiAlCarrello(p);
@@ -186,7 +183,7 @@ public class AcquistoControllerTest {
     }
 
     @Test
-    public void testCoupon_Integrazione() {
+    public void testCoupon_IntegrazioneDB_DAO() {
         // 1. SETUP: Creo un coupon nel DB direttamente tramite DAO
         // (Simulo che l'admin lo abbia creato)
         String codice = "SCONTO50";
